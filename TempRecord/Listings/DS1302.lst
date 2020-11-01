@@ -1,0 +1,114 @@
+C51 COMPILER V9.55   DS1302                                                                03/19/2020 16:47:00 PAGE 1   
+
+
+C51 COMPILER V9.55, COMPILATION OF MODULE DS1302
+OBJECT MODULE PLACED IN .\Objects\DS1302.obj
+COMPILER INVOKED BY: E:\keil\C51\BIN\C51.EXE DS1302.c OPTIMIZE(8,SPEED) BROWSE DEBUG OBJECTEXTEND PRINT(.\Listings\DS130
+                    -2.lst) TABS(2) OBJECT(.\Objects\DS1302.obj)
+
+line level    source
+
+   1          #include <intrins.h>
+   2          #include <REGX52.H>
+   3          #include "DEPUTY.H"
+   4          sbit SCK=P1^7;    
+   5          sbit SDA=P2^3;    
+   6          sbit RST = P1^3;
+   7          sbit DQ = P1^4;
+   8          
+   9          unsigned char shijian[]={50,59,23,0,0,0,0};
+  10          unsigned char set_time[] = {0};
+  11          
+  12          //****************??????:???????*********************//
+  13          void Write_Ds1302_Byte(unsigned  char temp) 
+  14          {
+  15   1        unsigned char i;
+  16   1        for (i=0;i<8;i++)       
+  17   1        { 
+  18   2          SCK=0;
+  19   2          SDA=temp&0x01;
+  20   2          temp>>=1; 
+  21   2          SCK=1;
+  22   2        }
+  23   1      }   
+  24          //DS1302???????
+  25          void Write_Ds1302( unsigned char address,unsigned char dat )     
+  26          {
+  27   1        RST=0;  _nop_();
+  28   1        SCK=0;  _nop_();
+  29   1        RST=1;  _nop_();  
+  30   1        Write_Ds1302_Byte(address); 
+  31   1        Write_Ds1302_Byte((dat/10<<4)|(dat%10));  ///////////////////////////////////////////////// 
+  32   1        RST=0; 
+  33   1      }
+  34          //DS1302???????
+  35          unsigned char Read_Ds1302 ( unsigned char address )
+  36          {
+  37   1        unsigned char i,temp=0x00,dat1,dat2;/////////////////////////////////////
+  38   1        RST=0;  _nop_();
+  39   1        SCK=0;  _nop_();
+  40   1        RST=1;  _nop_();
+  41   1        Write_Ds1302_Byte(address);
+  42   1        for (i=0;i<8;i++)   
+  43   1        {   
+  44   2          SCK=0;
+  45   2          temp>>=1; 
+  46   2          if(SDA)
+  47   2          temp|=0x80; 
+  48   2          SCK=1;
+  49   2        } 
+  50   1        RST=0;  _nop_();
+  51   1        SCK=0;  _nop_();
+  52   1        SCK=1;  _nop_();
+  53   1        SDA=0;  _nop_();
+  54   1        SDA=1;  _nop_();
+C51 COMPILER V9.55   DS1302                                                                03/19/2020 16:47:00 PAGE 2   
+
+  55   1        
+  56   1        dat1=temp/16;
+  57   1        dat2=temp%16;
+  58   1        temp=dat1*10+dat2;/////////////////////////////////////////////////////////////////
+  59   1        
+  60   1        return (temp);      
+  61   1      }
+  62          
+  63          void Init_DS(void)
+  64          {
+  65   1        unsigned char n,add;
+  66   1        add = 0x80;
+  67   1        Write_Ds1302(0x8E,0x00);
+  68   1        for(n=0;n<7;n++)
+  69   1        {
+  70   2          Write_Ds1302(add,shijian[n]);
+  71   2          add = add+2;
+  72   2        }
+  73   1        Write_Ds1302(0x8E,0x80);
+  74   1      }
+  75          
+  76          void Get_DS(void)
+  77          {
+  78   1        unsigned char n,add;
+  79   1        add = 0x81;
+  80   1        Write_Ds1302(0x8E,0x00);
+  81   1        for(n=0;n<7;n++)
+  82   1        {
+  83   2          set_time[n]=Read_Ds1302(add);
+  84   2          add=add+2;
+  85   2        }
+  86   1        Write_Ds1302(0x8E,0x80);
+  87   1      }
+  88          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    191    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =      8    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)
