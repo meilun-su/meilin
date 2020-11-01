@@ -1,0 +1,5 @@
+".\Objects\STARTUP.obj",
+".\Objects\²ÊµÆ.obj",
+".\Objects\iic.obj" 
+TO ".\Objects\²ÊµÆ" 
+PRINT(".\Listings\²ÊµÆ.m51") RAMSIZE(256) 
