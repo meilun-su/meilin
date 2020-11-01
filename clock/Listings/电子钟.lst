@@ -1,0 +1,491 @@
+C51 COMPILER V9.55   ______                                                                03/24/2020 19:25:05 PAGE 1   
+
+
+C51 COMPILER V9.55, COMPILATION OF MODULE ______
+OBJECT MODULE PLACED IN .\Objects\µç×ÓÖÓ.obj
+COMPILER INVOKED BY: E:\keil\C51\BIN\C51.EXE µç×ÓÖÓ.c OPTIMIZE(8,SPEED) BROWSE DEBUG OBJECTEXTEND PRINT(.\Listings\µç×ÓÖ
+                    -Ó.lst) TABS(2) OBJECT(.\Objects\µç×ÓÖÓ.obj)
+
+line level    source
+
+   1          #include <STC15F2K60S2.H>
+   2          #include "ds1302.h"
+   3          #include "onewire.h"
+   4          
+   5          #define uchar unsigned char
+   6          #define uint unsigned int
+   7          
+   8          uchar code tab[]={0xc0,0xf9,0xa4,0xb0,0x99,0x92,0x82,0xf8,0x80,0x90,0xbf,0xff,0xc6}; 
+   9          uchar yi,er,san,si,wu,liu,qi,ba;    //ÊýÂë¹ÜÎ»Ñ¡Ïà¹ØÓ¦ÓÃ
+  10          extern unsigned char shijian[];     //externµÄ×÷ÓÃ±íÊ¾±äÁ¿»òº¯Êý¶¨ÒåÔÚ±ðµÄÎÄ¼þÖÐ£¬´Ë´¦µÄshijian[]Êý×éÔÚds130
+             -2.cÎÄ¼þÖÐ¶¨Òå
+  11          uchar Alarm_clock[3] = {0,0,0};     //ÄÖÖÓÊý×é£¬¼ÇÂ¼ÄÖÖÓµÄÊ±¼ä
+  12          uchar Time_set=5,Alarm_set=0;       
+  13          /**************************************************************
+  14          Á½¸ö±äÁ¿ÓÃÀ´±íÊ¾Ê±ÖÓ£¨Time_set£©ºÍÄÖÖÓ(Alarm_set)µÄ×´Ì¬
+  15          Time_set=5    ±íÊ¾Õý³£ÏÔÊ¾µ±Ç°Ê±ÖÓ£¬Time_setºÍAlarm_set²»Í¬Ê±Îª5
+  16          Time_set=1    ±íÊ¾ÏÔÊ¾Ê±ÖÓ£¬ÊýÂë¹ÜÏÔÊ¾Ð¡Ê±µÄÁ½Î»ÊýÂë¹ÜÉÁË¸
+  17          Time_set=2    ±íÊ¾ÏÔÊ¾Ê±ÖÓ£¬ÊýÂë¹ÜÏÔÊ¾·ÖÖÓµÄÁ½Î»ÊýÂë¹ÜÉÁË¸
+  18          Time_set=3    ±íÊ¾ÏÔÊ¾Ê±ÖÓ£¬ÊýÂë¹ÜÏÔÊ¾ÃëÖÓµÄÁ½Î»ÊýÂë¹ÜÉÁË¸
+  19          Time_set=0    ±íÊ¾²»ÏÔÊ¾Ê±ÖÓ
+  20          Ê±ÖÓÏÔÊ¾£¨Time_set=5£©ºÍÄÖÖÓÏÔÊ¾£¨Alarm_set=5£©²»ÄÜÍ¬Ê±¹¤×÷£¬Time_set=5Ê±Alarm_set=0£»Time_set=0Ê±Alarm_se
+             -t=5
+  21          ***************************************************************/
+  22          bit wendu=0;                        //ÎÂ¶È×´Ì¬£¬0Îª²»ÏÔÊ¾ÎÂ¶È£¬1ÎªÏÔÊ¾ÎÂ¶È
+  23          bit fla=0;                          //ledµÆ×´Ì¬£¬1ÎªÁÁ£¬0ÎªÃð
+  24          uchar s4=0;                         //ÔÚÎÂ¶ÈÏÔÊ¾Ïà¹Ø²Ù×÷Ê¹ÓÃ
+  25          uint miao=0;                        //ÓÃÀ´¼ÆÊý£¬¼ÆÊýledµÆÉÁË¸Ê±¼ä5s
+  26          uchar tt=0;                         //ÓÃÀ´¼ÆÊý£¬ledµÆÒÔ0.2sÉÁË¸
+  27          uchar LED_shan=0;                   //ÅÐ¶ÏledµÆÉÁË¸×´Ì¬£¬1ÎªÉÁË¸£¬0Îª²»ÉÁË¸
+  28          uchar SMG=0,SMG_shan=0;             //SMGÓÃÓÚ¼ÆÊý£¬¼ÆÊýÒ»Ãë£¬Ê¹µÃÊýÂë¹ÜÉÁË¸£¬SMG_shan±íÊ¾ÊýÂë¹ÜÁÁÃð×´Ì¬£¬0ÎªÁÁ£¬
+             -1ÎªÃð
+  29          
+  30          sbit S7 = P3^0;
+  31          sbit S6 = P3^1;
+  32          sbit S5 = P3^2;
+  33          sbit S4 = P3^3;
+  34          
+  35          //======================³õÊ¼»¯º¯Êý=================================
+  36          void InitSystem()
+  37          {
+  38   1          P2 = 0xa0;
+  39   1          P0 = 0x00;
+  40   1        
+  41   1          P2 = 0x80;
+  42   1          P0 = 0xff;
+  43   1        
+  44   1          P2 = 0xc0;
+  45   1          P0 = 0xff;
+  46   1          P2 = 0xff;
+  47   1          P0 = 0xff;
+  48   1      }
+  49          //======================Ê±¼äÏÔÊ¾º¯Êý=================================
+  50          void Display_Time(uchar n)
+  51          {
+C51 COMPILER V9.55   ______                                                                03/24/2020 19:25:05 PAGE 2   
+
+  52   1          switch(n)
+  53   1          {
+  54   2            case 5:
+  55   2                yi=shijian[2]/10;er=shijian[2]%10;san=10;si=shijian[1]/10;wu=shijian[1]%10;liu=10;qi=shijian[0]/10;ba
+             -=shijian[0]%10;
+  56   2            break;
+  57   2            
+  58   2            case 1:
+  59   2                DS1302_tingzhi();   //Í£Ö¹Ê±ÖÓÕñµ´
+  60   2                if(SMG_shan==0)
+  61   2                {
+  62   3                    yi=shijian[2]/10;er=shijian[2]%10;san=10;si=shijian[1]/10;wu=shijian[1]%10;liu=10;qi=shijian[0]/10;
+             -ba=shijian[0]%10;
+  63   3                }
+  64   2                else if(SMG_shan==1)
+  65   2                {
+  66   3                    yi=11;er=11;san=10;si=shijian[1]/10;wu=shijian[1]%10;liu=10;qi=shijian[0]/10;ba=shijian[0]%10;
+  67   3                }
+  68   2            break;
+  69   2            
+  70   2            case 2:
+  71   2                DS1302_tingzhi();
+  72   2                if(SMG_shan==0)
+  73   2                {
+  74   3                    yi=shijian[2]/10;er=shijian[2]%10;san=10;si=shijian[1]/10;wu=shijian[1]%10;liu=10;qi=shijian[0]/10;
+             -ba=shijian[0]%10;
+  75   3                }
+  76   2                else if(SMG_shan==1)
+  77   2                {
+  78   3                    yi=shijian[2]/10;er=shijian[2]%10;san=10;si=11;wu=11;liu=10;qi=shijian[0]/10;ba=shijian[0]%10;
+  79   3                }
+  80   2            break;
+  81   2            
+  82   2            case 3:
+  83   2                DS1302_tingzhi();
+  84   2                if(SMG_shan==0)
+  85   2                {
+  86   3                    yi=shijian[2]/10;er=shijian[2]%10;san=10;si=shijian[1]/10;wu=shijian[1]%10;liu=10;qi=shijian[0]/10;
+             -ba=shijian[0]%10;
+  87   3                }
+  88   2                else if(SMG_shan==1)
+  89   2                {
+  90   3                    yi=shijian[2]/10;er=shijian[2]%10;san=10;si=shijian[1]/10;wu=shijian[1]%10;liu=10;qi=11;ba=11;
+  91   3                }
+  92   2            break;
+  93   2          }
+  94   1      }
+  95          //======================ÄÖÖÓÏÔÊ¾º¯Êý=================================
+  96          void Display_Alarm(uchar n)
+  97          {
+  98   1          switch(n)
+  99   1          {
+ 100   2            case 5:
+ 101   2                yi=Alarm_clock[2]/10;er=Alarm_clock[2]%10;san=10;si=Alarm_clock[1]/10;wu=Alarm_clock[1]%10;liu=10;qi=
+             -Alarm_clock[0]/10;ba=Alarm_clock[0]%10;
+ 102   2            break;
+ 103   2            
+ 104   2            case 1:
+ 105   2                if(SMG_shan==0)
+ 106   2                {
+ 107   3                    yi=Alarm_clock[2]/10;er=Alarm_clock[2]%10;san=10;si=Alarm_clock[1]/10;wu=Alarm_clock[1]%10;liu=10;q
+             -i=Alarm_clock[0]/10;ba=Alarm_clock[0]%10;
+C51 COMPILER V9.55   ______                                                                03/24/2020 19:25:05 PAGE 3   
+
+ 108   3                }
+ 109   2                else if(SMG_shan==1)
+ 110   2                {
+ 111   3                    yi=11;er=11;san=10;si=Alarm_clock[1]/10;wu=Alarm_clock[1]%10;liu=10;qi=Alarm_clock[0]/10;ba=Alarm_c
+             -lock[0]%10;
+ 112   3                }
+ 113   2            break;
+ 114   2            
+ 115   2            case 2:
+ 116   2                if(SMG_shan==0)
+ 117   2                {
+ 118   3                    yi=Alarm_clock[2]/10;er=Alarm_clock[2]%10;san=10;si=Alarm_clock[1]/10;wu=Alarm_clock[1]%10;liu=10;q
+             -i=Alarm_clock[0]/10;ba=Alarm_clock[0]%10;
+ 119   3                }
+ 120   2                else if(SMG_shan==1)
+ 121   2                {
+ 122   3                    yi=Alarm_clock[2]/10;er=Alarm_clock[2]%10;san=10;si=11;wu=11;liu=10;qi=Alarm_clock[0]/10;ba=Alarm_c
+             -lock[0]%10;
+ 123   3                }
+ 124   2            break;
+ 125   2            
+ 126   2            case 3:
+ 127   2                if(SMG_shan==0)
+ 128   2                {
+ 129   3                    yi=Alarm_clock[2]/10;er=Alarm_clock[2]%10;san=10;si=Alarm_clock[1]/10;wu=Alarm_clock[1]%10;liu=10;q
+             -i=Alarm_clock[0]/10;ba=Alarm_clock[0]%10;
+ 130   3                }
+ 131   2                else if(SMG_shan==1)
+ 132   2                {
+ 133   3                    yi=Alarm_clock[2]/10;er=Alarm_clock[2]%10;san=10;si=Alarm_clock[1]/10;wu=Alarm_clock[1]%10;liu=10;q
+             -i=11;ba=11;
+ 134   3                }
+ 135   2            break;
+ 136   2          }
+ 137   1      }
+ 138          
+ 139          //==================¶¨Ê±Æ÷0ÖÐ¶Ïº¯Êý=========================
+ 140          void Timer0Init(void)   //5ºÁÃë@11.0592MHz
+ 141          {
+ 142   1        AUXR |= 0x80;   //¶¨Ê±Æ÷Ê±ÖÓ1TÄ£Ê½
+ 143   1        TMOD &= 0xF0;   //ÉèÖÃ¶¨Ê±Æ÷Ä£Ê½
+ 144   1        TL0 = 0x00;   //ÉèÖÃ¶¨Ê±³õÖµ
+ 145   1        TH0 = 0x28;   //ÉèÖÃ¶¨Ê±³õÖµ
+ 146   1        TF0 = 0;    //Çå³ýTF0±êÖ¾
+ 147   1        TR0 = 1;    //¶¨Ê±Æ÷0¿ªÊ¼¼ÆÊ±
+ 148   1        
+ 149   1        ET0 = 1;
+ 150   1        EA = 1;
+ 151   1      }
+ 152          //=================¶¨Ê±Æ÷0ÖÐ¶Ï·þÎñº¯Êý=======================
+ 153          void Time0() interrupt 1
+ 154          {
+ 155   1          SMG++;miao++;tt++;
+ 156   1          if((tt==40)&&(LED_shan==1))   
+ 157   1          {
+ 158   2              tt=0;
+ 159   2              if(fla==0){fla=1;P2=0x80;P0=0xfe;}
+ 160   2              else if(fla==1){fla=0;P2=0x80;P0=0xff;}
+ 161   2          }
+ 162   1          
+ 163   1          if(miao==1000)
+ 164   1          {
+C51 COMPILER V9.55   ______                                                                03/24/2020 19:25:05 PAGE 4   
+
+ 165   2              miao=0;
+ 166   2              LED_shan=0;P2=0x80;P0=0xff;
+ 167   2          }
+ 168   1        
+ 169   1          if(SMG == 200)
+ 170   1          {
+ 171   2              SMG=0;
+ 172   2              SMG_shan=!SMG_shan;
+ 173   2          }
+ 174   1      }
+ 175          
+ 176          void delayms(uint t)
+ 177          {
+ 178   1          uint i,j;
+ 179   1          for(i=t;i>0;i--)
+ 180   1            for(j=845;j>0;j--);
+ 181   1      }
+ 182          
+ 183          //======================ÊýÂë¹ÜÏÔÊ¾º¯Êý============================
+ 184          void Display1(uchar yi,uchar er)
+ 185          {
+ 186   1          P2 = 0xc0;
+ 187   1          P0 = 0x01;
+ 188   1          P2 = 0xff;
+ 189   1          P0 = tab[yi];
+ 190   1          delayms(1);
+ 191   1        
+ 192   1          P2 = 0xc0;
+ 193   1          P0 = 0x02;
+ 194   1          P2 = 0xff;
+ 195   1          P0 = tab[er];
+ 196   1          delayms(1);
+ 197   1      }
+ 198          
+ 199          void Display2(uchar san,uchar si)
+ 200          {
+ 201   1          P2 = 0xc0;
+ 202   1          P0 = 0x04;
+ 203   1          P2 = 0xff;
+ 204   1          P0 = tab[san];
+ 205   1          delayms(1);
+ 206   1        
+ 207   1          P2 = 0xc0;
+ 208   1          P0 = 0x08;
+ 209   1          P2 = 0xff;
+ 210   1          P0 = tab[si];
+ 211   1          delayms(1);
+ 212   1      }
+ 213          
+ 214          void Display3(uchar wu,uchar liu)
+ 215          {
+ 216   1          P2 = 0xc0;
+ 217   1          P0 = 0x10;
+ 218   1          P2 = 0xff;
+ 219   1          P0 = tab[wu];
+ 220   1          delayms(1);
+ 221   1        
+ 222   1          P2 = 0xc0;
+ 223   1          P0 = 0x20;
+ 224   1          P2 = 0xff;
+ 225   1          P0 = tab[liu];
+ 226   1          delayms(1);
+C51 COMPILER V9.55   ______                                                                03/24/2020 19:25:05 PAGE 5   
+
+ 227   1      }
+ 228          
+ 229          void Display4(uchar qi,uchar ba)
+ 230          {
+ 231   1          P2 = 0xc0;
+ 232   1          P0 = 0x40;
+ 233   1          P2 = 0xff;
+ 234   1          P0 = tab[qi];
+ 235   1          delayms(1);
+ 236   1        
+ 237   1          P2 = 0xc0;
+ 238   1          P0 = 0x80;
+ 239   1          P2 = 0xff;
+ 240   1          P0 = tab[ba];
+ 241   1          delayms(1);
+ 242   1        
+ 243   1          P2 = 0xc0;
+ 244   1          P0 = 0xff;
+ 245   1          P2 = 0xff;
+ 246   1          P0 = 0xff;
+ 247   1          delayms(1);
+ 248   1      }
+ 249          
+ 250          //==============================°´¼ü¿ØÖÆº¯Êý================================
+ 251          void KeyScan(void)
+ 252          {
+ 253   1          if(S7 == 0)
+ 254   1          {
+ 255   2              delayms(5);
+ 256   2              if(S7 == 0)
+ 257   2              {
+ 258   3                  if(LED_shan==0)
+ 259   3                  {
+ 260   4                      if(Time_set==0){Time_set=5;Alarm_set=0;}
+ 261   4                      else if(Time_set==5)Time_set=1;
+ 262   4                      else if(Time_set==1)Time_set=2;
+ 263   4                      else if(Time_set==2)Time_set=3;
+ 264   4                      else if(Time_set==3)Time_set=5;
+ 265   4                  }
+ 266   3                  else if(LED_shan==1)
+ 267   3                  { 
+ 268   4                      LED_shan=0;P2=0x80;P0=0xff;
+ 269   4                  }
+ 270   3              while(!S7);
+ 271   3              }
+ 272   2          }
+ 273   1          
+ 274   1          else if(S6 == 0)
+ 275   1          {
+ 276   2              delayms(5);
+ 277   2              if(S6 == 0)
+ 278   2              {
+ 279   3                  if(LED_shan==0)
+ 280   3                  {
+ 281   4                      if(Alarm_set==0){Alarm_set=5;Time_set=0;}
+ 282   4                      else if(Alarm_set==5)Alarm_set=1;
+ 283   4                      else if(Alarm_set==1)Alarm_set=2;
+ 284   4                      else if(Alarm_set==2)Alarm_set=3;
+ 285   4                      else if(Alarm_set==3)Alarm_set=5;
+ 286   4                  }
+ 287   3                  else if(LED_shan==1)
+ 288   3                  { 
+C51 COMPILER V9.55   ______                                                                03/24/2020 19:25:05 PAGE 6   
+
+ 289   4                      LED_shan=0;P2=0x80;P0=0xff;
+ 290   4                  }
+ 291   3              while(!S6);
+ 292   3              }
+ 293   2          }
+ 294   1          
+ 295   1          else if(S5 == 0)
+ 296   1          {
+ 297   2              delayms(5);
+ 298   2              if(S5 == 0)
+ 299   2              {
+ 300   3                  if(LED_shan==0)
+ 301   3                  {
+ 302   4                      if(Time_set==1)
+ 303   4                      {
+ 304   5                          if(shijian[2]==23)shijian[2]=0;
+ 305   5                          else shijian[2]++;
+ 306   5                          DS1302_Init();
+ 307   5                      }
+ 308   4                      else if(Time_set==2)
+ 309   4                      {
+ 310   5                          if(shijian[1]==59)shijian[1]=0;
+ 311   5                          else shijian[1]++;
+ 312   5                          DS1302_Init();
+ 313   5                      }
+ 314   4                      else if(Time_set==3)
+ 315   4                      {
+ 316   5                          if(shijian[0]==59)shijian[0]=0;
+ 317   5                          else shijian[0]++;
+ 318   5                          DS1302_Init();
+ 319   5                      }
+ 320   4                      else if(Alarm_set==1)
+ 321   4                      {
+ 322   5                          if(Alarm_clock[2]==23)Alarm_clock[2]=0;
+ 323   5                          else Alarm_clock[2]++;
+ 324   5                      }
+ 325   4                      else if(Alarm_set==2)
+ 326   4                      {
+ 327   5                          if(Alarm_clock[1]==59)Alarm_clock[1]=0;
+ 328   5                          else Alarm_clock[1]++;
+ 329   5                      }
+ 330   4                      else if(Alarm_set==3)
+ 331   4                      {
+ 332   5                          if(Alarm_clock[0]==59)Alarm_clock[0]=0;
+ 333   5                          else Alarm_clock[0]++;
+ 334   5                      }
+ 335   4                  }
+ 336   3                  else if(LED_shan==1)
+ 337   3                  { 
+ 338   4                      LED_shan=0;P2=0x80;P0=0xff;
+ 339   4                  }
+ 340   3              while(!S5);
+ 341   3              }
+ 342   2          }
+ 343   1          else if(S4==0)
+ 344   1          {
+ 345   2            delayms(5);
+ 346   2              if(S4==0)
+ 347   2              {
+ 348   3                  s4=1;
+ 349   3                  if(Time_set==5)wendu=1;
+ 350   3                  if(S4==0&&LED_shan==1)
+C51 COMPILER V9.55   ______                                                                03/24/2020 19:25:05 PAGE 7   
+
+ 351   3                  {
+ 352   4                    LED_shan=0;P2=0x80;P0=0xff;
+ 353   4                    while(!S4);
+ 354   4                  }
+ 355   3              }
+ 356   2          }
+ 357   1          if((S4 == 1)&&(s4==1))
+ 358   1          {
+ 359   2              s4=0;
+ 360   2              if(LED_shan==0)
+ 361   2              {
+ 362   3                  wendu=0;
+ 363   3                  if(Time_set==1)
+ 364   3                  {
+ 365   4                      if(shijian[2]==0)shijian[2]=23;
+ 366   4                      else shijian[2]--;
+ 367   4                      DS1302_Init();
+ 368   4                  }
+ 369   3                  else if(Time_set==2)
+ 370   3                  {
+ 371   4                      if(shijian[1]==0)shijian[1]=59;
+ 372   4                      else shijian[1]--;
+ 373   4                      DS1302_Init();
+ 374   4                  }
+ 375   3                  else if(Time_set==3)
+ 376   3                  {
+ 377   4                      if(shijian[0]==0)shijian[0]=59;
+ 378   4                      else shijian[0]--;
+ 379   4                      DS1302_Init();
+ 380   4                  }
+ 381   3                  else if(Alarm_set==1)
+ 382   3                  {
+ 383   4                      if(Alarm_clock[2]==0)Alarm_clock[2]=23;
+ 384   4                      else Alarm_clock[2]--;
+ 385   4                  }
+ 386   3                  else if(Alarm_set==2)
+ 387   3                  {
+ 388   4                      if(Alarm_clock[1]==0)Alarm_clock[1]=59;
+ 389   4                      else Alarm_clock[1]--;
+ 390   4                  }
+ 391   3                  else if(Alarm_set==3)
+ 392   3                  {
+ 393   4                      if(Alarm_clock[0]==0)Alarm_clock[0]=59;
+ 394   4                      else Alarm_clock[0]--;
+ 395   4                  }
+ 396   3              }
+ 397   2              else if(LED_shan==1)
+ 398   2              { 
+ 399   3                  LED_shan=0;P2=0x80;P0=0xff;
+ 400   3              }
+ 401   2          }
+ 402   1      }
+ 403          void main()
+ 404          {
+ 405   1          InitSystem();
+ 406   1          Timer0Init();
+ 407   1          DS1302_Init();
+ 408   1          while(1)
+ 409   1          {
+ 410   2            DS1302_get();
+ 411   2            
+ 412   2            if(wendu==0)
+C51 COMPILER V9.55   ______                                                                03/24/2020 19:25:05 PAGE 8   
+
+ 413   2            {
+ 414   3                Display_Time(Time_set);
+ 415   3          
+ 416   3                Display_Alarm(Alarm_set);
+ 417   3            }
+ 418   2            else if(wendu==1)   //ÎÂ¶È
+ 419   2            {
+ 420   3                yi=11;er=11;san=11;si=11;wu=11;liu=GetTemp()/10;qi=GetTemp()%10;ba=12;
+ 421   3            }
+ 422   2            //ÄÖÖÓ
+ 423   2            if((Time_set==1||Time_set==2||Time_set==3)&&(shijian[0]==Alarm_clock[0])&&(shijian[1]==Alarm_clock[1])&
+             -&(shijian[2]==Alarm_clock[2]))
+ 424   2            {
+ 425   3                KeyScan();
+ 426   3            }
+ 427   2            else if((shijian[0]==Alarm_clock[0])&&(shijian[1]==Alarm_clock[1])&&(shijian[2]==Alarm_clock[2]))
+ 428   2            {
+ 429   3                LED_shan=1;tt=0;miao=0;
+ 430   3            }
+ 431   2            
+ 432   2            KeyScan();
+ 433   2            Display1(yi,er);
+ 434   2            Display2(san,si);
+ 435   2            Display3(wu,liu);
+ 436   2            Display4(qi,ba);
+ 437   2          }
+ 438   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   1472    ----
+   CONSTANT SIZE    =     13    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =     20    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =      2    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)
