@@ -1,0 +1,41 @@
+C51 COMPILER V9.55   KAIGUAN                                                               10/17/2020 16:48:36 PAGE 1   
+
+
+C51 COMPILER V9.55, COMPILATION OF MODULE KAIGUAN
+OBJECT MODULE PLACED IN .\Objects\kaiguan.obj
+COMPILER INVOKED BY: E:\keil\C51\BIN\C51.EXE src\kaiguan.c OPTIMIZE(8,SPEED) BROWSE INCDIR(.\src;.\src\hardware;.\src\Li
+                    -brary) DEBUG OBJECTEXTEND PRINT(.\Listings\kaiguan.lst) TABS(2) OBJECT(.\Objects\kaiguan.obj)
+
+line level    source
+
+   1          #include "main.h"
+   2          #include "kaiguan.h"
+   3          
+   4          void switch_init(void)
+   5          {
+   6   1        SetPINQuasiBidirectional(SWITCH_PORT,SWITCH_PIN);
+   7   1        SET_PIN_H(SWITCH_PORT,SWITCH_PIN);
+   8   1      }
+   9          
+  10          void switch_open(void)
+  11          {
+  12   1        SET_PIN_L(SWITCH_PORT,SWITCH_PIN);
+  13   1      }
+  14          void switch_close(void)
+  15          {
+  16   1        SET_PIN_H(SWITCH_PORT,SWITCH_PIN);
+  17   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =     15    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

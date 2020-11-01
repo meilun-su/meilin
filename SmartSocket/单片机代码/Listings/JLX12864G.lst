@@ -1,0 +1,266 @@
+C51 COMPILER V9.55   JLX12864G                                                             10/17/2020 16:48:36 PAGE 1   
+
+
+C51 COMPILER V9.55, COMPILATION OF MODULE JLX12864G
+OBJECT MODULE PLACED IN .\Objects\JLX12864G.obj
+COMPILER INVOKED BY: E:\keil\C51\BIN\C51.EXE src\hardware\JLX12864G.c OPTIMIZE(8,SPEED) BROWSE INCDIR(.\src;.\src\hardwa
+                    -re;.\src\Library) DEBUG OBJECTEXTEND PRINT(.\Listings\JLX12864G.lst) TABS(2) OBJECT(.\Objects\JLX12864G.obj)
+
+line level    source
+
+   1          #include "main.h"
+   2          #include "JLX12864G.h"
+   3          #include "ASCII8x16.h"
+   4          
+   5          //===========================================================
+   6          //     LCD初始化
+   7          //===========================================================
+   8          void LCD_init(void)
+   9          {
+  10   1        //IO口初始化
+  11   1        SetPINQuasiBidirectional(SCK_PORT,SCK_PIN);
+  12   1        SetPINQuasiBidirectional(SDA_PORT,SDA_PIN);
+  13   1        SetPINQuasiBidirectional(RS_PORT,RS_PIN);
+  14   1        SetPINQuasiBidirectional(RST_PORT,RST_PIN);
+  15   1        SetPINQuasiBidirectional(CS_PORT,CS_PIN);
+  16   1        
+  17   1        SET_PIN_L(RST_PORT,RST_PIN);//reset=0;  //低电平复位 
+  18   1        Delay_ms(100);
+  19   1        SET_PIN_H(RST_PORT,RST_PIN);//reset=1;  //复位完毕 
+  20   1        Delay_ms(100);
+  21   1        LCD_send_command(0xe2); //软复位
+  22   1        Delay_ms(5);
+  23   1        LCD_send_command(0x2c); //升压步骤 1
+  24   1        Delay_ms(5);
+  25   1        LCD_send_command(0x2e); //升压步骤 2
+  26   1        Delay_ms(5);
+  27   1        LCD_send_command(0x2f); //升压步骤 3
+  28   1        Delay_ms(5);
+  29   1        LCD_send_command(0x24); //粗调对比度，可调范围 0x20~0x27
+  30   1        LCD_send_command(0x81); //微调对比度
+  31   1        LCD_send_command(0x2a); //0x1a,微调对比度的值，可设置范围 0x00~0x3f
+  32   1        LCD_send_command(0xa2); //1/9偏压比(bias)
+  33   1        LCD_send_command(0xc8); //行扫描顺序：从上到下
+  34   1        LCD_send_command(0xa0); //列扫描顺序：从左到右 
+  35   1        LCD_send_command(0x40); //开始行：第一行开始 
+  36   1        LCD_send_command(0xaf); //开显示
+  37   1      }
+  38          //===========================================================
+  39          //     设置显示地址
+  40          //===========================================================
+  41          void lcd_setAddress(uint8_t page,uint8_t column)
+  42          {
+  43   1        //column=column-1;  
+  44   1        //page = page-1;
+  45   1        LCD_send_command(0xb0+page);  //设置页地址，从0开始
+  46   1        LCD_send_command(((column>>4)&0x0f)+0x10);  //设置列地址，从0开始
+  47   1        LCD_send_command(column&0x0f);    //设置地址的低4位
+  48   1      }
+  49          //===========================================================
+  50          //     全屏清屏
+  51          //===========================================================
+  52          void LCD_clearScreen(void)
+  53          {
+  54   1        unsigned char i,j; 
+C51 COMPILER V9.55   JLX12864G                                                             10/17/2020 16:48:36 PAGE 2   
+
+  55   1        for(i=0;i<8;i++)
+  56   1        {
+  57   2          lcd_setAddress(i,0);
+  58   2      
+  59   2          for(j=0;j<132;j++)
+  60   2          {
+  61   3            LCD_send_data(0x00);
+  62   3          }
+  63   2        }
+  64   1      }
+  65          ////===========================================================
+  66          ////     显示128*64的内容
+  67          ////===========================================================
+  68          //void LCD_fullDisplay(uint8_t data_left,uint8_t data_right)
+  69          //{
+  70          //  uint8_t i,j; 
+  71          //  for(i=0;i<8;i++)
+  72          //  {
+  73          //    SET_PIN_L(CS_PORT,CS_PIN);//cs1=0; 
+  74          //    lcd_setAddress(i,0); 
+  75          //    for(j=0;j<64;j++)
+  76          //    {
+  77          //      LCD_send_data(data_left); 
+  78          //      LCD_send_data(data_right);
+  79          //    }
+  80          //  }
+  81          //}
+  82          ////===========================================================
+  83          ////显示 8x16 点阵图像、ASCII, 或 8x16 点阵的自造字符、其他图标
+  84          ////===========================================================
+  85          //void LCD_displayGraphic8x16(uint8_t page,uint8_t column,uint8_t *dp)
+  86          //{
+  87          //  uint8_t i,j; 
+  88          //  for(j=0;j<2;j++)
+  89          //  {
+  90          //    lcd_setAddress(page+j,column); 
+  91          //    for (i=0;i<8;i++)
+  92          //    {
+  93          //      LCD_send_data(*dp); //写数据到LCD,每写完一个8位的数据后地址自动加1
+  94          //      dp++;
+  95          //    }
+  96          //  }
+  97          //}
+  98          //===========================================================
+  99          //显示 8x16 ASCII的字符
+ 100          //===========================================================
+ 101          void LCD_display8x16(uint8_t page,uint8_t column,uint8_t text)
+ 102          {
+ 103   1        uint8_t i=0,j,k,n; 
+ 104   1      
+ 105   1          if((text>=0x20)&&(text<=0x7e))
+ 106   1          {
+ 107   2            j=text-0x20; 
+ 108   2            for(n=0;n<2;n++)
+ 109   2            {
+ 110   3              lcd_setAddress(page+n,column); 
+ 111   3              for(k=0;k<8;k++)
+ 112   3              {
+ 113   4                LCD_send_data(ascii_table_8x16[j][k+8*n]);//查表读数据
+ 114   4              }
+ 115   3            }
+ 116   2            //column+=8;
+C51 COMPILER V9.55   JLX12864G                                                             10/17/2020 16:48:36 PAGE 3   
+
+ 117   2          }
+ 118   1      }
+ 119          //===========================================================
+ 120          //显示 8x16 ASCII的字符串
+ 121          //===========================================================
+ 122          void LCD_displayString8x16(uint8_t page,uint8_t column,uint8_t *text)
+ 123          {
+ 124   1        uint8_t i=0,j,k,n,m=page; 
+ 125   1        while(text[i]>0x00)
+ 126   1        {
+ 127   2          if((text[i]>=0x20)&&(text[i]<=0x7e))
+ 128   2          {
+ 129   3            j=text[i]-0x20; 
+ 130   3            for(n=0;n<2;n++)
+ 131   3            {
+ 132   4              lcd_setAddress(page+n,column); 
+ 133   4              for(k=0;k<8;k++)
+ 134   4              {
+ 135   5                LCD_send_data(ascii_table_8x16[j][k+8*n]);//查表读数据
+ 136   5              }
+ 137   4            } 
+ 138   3            i++;
+ 139   3            column+=8;
+ 140   3            if(column>=128)
+ 141   3            {
+ 142   4              column=0;
+ 143   4              
+ 144   4              page+=2;  
+ 145   4              if(page>=8)         //写到最后一行后直接退出显示
+ 146   4              {
+ 147   5                page=m;
+ 148   5              }
+ 149   4            }
+ 150   3          }
+ 151   2          else i++;
+ 152   2        }
+ 153   1      }
+ 154          //===========================================================
+ 155          //显示 8x16 ASCII的数据
+ 156          //===========================================================
+ 157          void LCD_displayMQTTArray8x16(uint8_t page,uint8_t column,uint8_t *text)
+ 158          {
+ 159   1        uint8_t i,j,k,n,m=page; 
+ 160   1        for(i=0;i<(text[1]+1);i++)
+ 161   1        {
+ 162   2          if((text[i]<=0x20)||(text[i]>=0x7e))
+ 163   2          {
+ 164   3            text[i]='.';
+ 165   3          }
+ 166   2          
+ 167   2          //if((text[i]>=0x20)&&(text[i]<=0x7e))
+ 168   2          {
+ 169   3            j=text[i]-0x20; 
+ 170   3            for(n=0;n<2;n++)
+ 171   3            {
+ 172   4              lcd_setAddress(page+n,column); 
+ 173   4              for(k=0;k<8;k++)
+ 174   4              {
+ 175   5                LCD_send_data(ascii_table_8x16[j][k+8*n]);//查表读数据
+ 176   5              }
+ 177   4            }
+ 178   3            //i++;
+C51 COMPILER V9.55   JLX12864G                                                             10/17/2020 16:48:36 PAGE 4   
+
+ 179   3            column+=8;
+ 180   3            if(column>=128)
+ 181   3            {
+ 182   4              column=0;
+ 183   4              
+ 184   4              page+=2;  
+ 185   4              if(page>=8)         //写到最后一行后直接退出显示
+ 186   4              {
+ 187   5                page=m;
+ 188   5              }
+ 189   4            }
+ 190   3          }
+ 191   2          //else i++;
+ 192   2        }
+ 193   1      }
+ 194          //===========================================================
+ 195          //     发送命令给LCD
+ 196          //===========================================================
+ 197          void LCD_send_command(uint8_t data1)
+ 198          {
+ 199   1        uint8_t i; 
+ 200   1        SET_PIN_L(CS_PORT,CS_PIN);//cs=0; 
+ 201   1        SET_PIN_L(RS_PORT,RS_PIN);//rs=0;
+ 202   1        for(i=0;i<8;i++)
+ 203   1        {
+ 204   2          SET_PIN_L(SCK_PORT,SCK_PIN);//sclk=0; 
+ 205   2          Delay_us(2);
+ 206   2          if(data1&0x80) SET_PIN_H(SDA_PORT,SDA_PIN);//sid=1;
+ 207   2          else SET_PIN_L(SDA_PORT,SDA_PIN);//sid=0; 
+ 208   2          SET_PIN_H(SCK_PORT,SCK_PIN);//sclk=1; 
+ 209   2          Delay_us(2); 
+ 210   2          data1=data1<<=1;
+ 211   2        }
+ 212   1        SET_PIN_H(CS_PORT,CS_PIN);//cs1=1;
+ 213   1      }
+ 214          
+ 215          //===========================================================
+ 216          //     发送数据给LCD
+ 217          //===========================================================
+ 218          void LCD_send_data(uint8_t data1)
+ 219          {
+ 220   1        uint8_t i; 
+ 221   1        SET_PIN_L(CS_PORT,CS_PIN);//cs1=0; 
+ 222   1        SET_PIN_H(RS_PORT,RS_PIN);//rs=1;
+ 223   1        for(i=0;i<8;i++)
+ 224   1        {
+ 225   2          SET_PIN_L(SCK_PORT,SCK_PIN);//sclk=0; 
+ 226   2          Delay_us(1);
+ 227   2          if(data1&0x80) SET_PIN_H(SDA_PORT,SDA_PIN);//sid=1; 
+ 228   2          else SET_PIN_L(SDA_PORT,SDA_PIN);//sid=0;
+ 229   2          SET_PIN_H(SCK_PORT,SCK_PIN);//sclk=1; 
+ 230   2          Delay_us(1);                        
+ 231   2          data1<<=1;
+ 232   2        }
+ 233   1        SET_PIN_H(CS_PORT,CS_PIN);//cs1=1;
+ 234   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    772    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+C51 COMPILER V9.55   JLX12864G                                                             10/17/2020 16:48:36 PAGE 5   
+
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----      33
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

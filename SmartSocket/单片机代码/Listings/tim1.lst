@@ -1,0 +1,59 @@
+C51 COMPILER V9.00   TIM1                                                                  09/20/2020 17:34:18 PAGE 1   
+
+
+C51 COMPILER V9.00, COMPILATION OF MODULE TIM1
+OBJECT MODULE PLACED IN .\Objects\tim1.obj
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE src\Library\tim1.c OPTIMIZE(8,SPEED) BROWSE INCDIR(.\src;.\src\hardware;.\s
+                    -rc\Library) DEBUG OBJECTEXTEND PRINT(.\Listings\tim1.lst) TABS(2) OBJECT(.\Objects\tim1.obj)
+
+line level    source
+
+   1          //===========================================================
+   2          //定时器1用于光控控制
+   3          //===========================================================
+   4          #include "main.h"
+   5          #include "tim1.h"
+   6          
+   7          //uint8_t main_TM;
+   8          //#define TH1VAL (65536-160)
+   9          //#define TL1VAL (65536-160)
+  10          
+  11          //===========================================================
+  12          //    配置TIM0
+  13          //===========================================================
+  14          void TIM1_Config(uint16_t VAL)
+  15          {
+  16   1        AUXR |= 0x40;   //定时器时钟1T模式
+*** ERROR C202 IN LINE 16 OF SRC\LIBRARY\TIM1.C: 'AUXR': undefined identifier
+  17   1        TMOD &= 0x0F;   //16位自动重载模式
+  18   1        TH1=VAL/256;
+  19   1        TL1=VAL%256;
+  20   1        ET1=1;      //开中断
+  21   1      }
+  22          ////===========================================================
+  23          ////    使能TIM0
+  24          ////===========================================================
+  25          //void TIM1_Enable(void)
+  26          //{
+  27          //  TR1=1;
+  28          //}
+  29          ////===========================================================
+  30          ////    关闭TIM1
+  31          ////===========================================================
+  32          //void TIM1_Disable(void)
+  33          //{
+  34          //  TR1=0;
+  35          //}
+  36          
+  37          ////===========================================================
+  38          ////    TIMER 1 interrupt subroutine
+  39          ////===========================================================
+  40          //void Timer1_ISR (void) interrupt 3  //interrupt address is 0x000B
+  41          //{
+  42          //    TH1=TH0VAL;
+  43          //  TL1=TL0VAL;
+  44          ////    main_TM++;
+  45          ////    P17^=1;
+  46          //}
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  1 ERROR(S)

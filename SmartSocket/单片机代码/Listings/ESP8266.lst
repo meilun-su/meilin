@@ -1,0 +1,339 @@
+C51 COMPILER V9.55   ESP8266                                                               10/17/2020 16:51:36 PAGE 1   
+
+
+C51 COMPILER V9.55, COMPILATION OF MODULE ESP8266
+OBJECT MODULE PLACED IN .\Objects\ESP8266.obj
+COMPILER INVOKED BY: E:\keil\C51\BIN\C51.EXE src\hardware\ESP8266.c OPTIMIZE(8,SPEED) BROWSE INCDIR(.\src;.\src\hardware
+                    -;.\src\Library) DEBUG OBJECTEXTEND PRINT(.\Listings\ESP8266.lst) TABS(2) OBJECT(.\Objects\ESP8266.obj)
+
+line level    source
+
+   1          #include "main.h"
+   2          #include "ESP8266.h"
+   3          #include "key.h"
+   4          #include "JLX12864G.h"
+   5          #include "mqtt.h"
+   6          #include "DHT11.h"
+   7          #include "guang.h"
+   8          //code uint8_t WIFI_Name[]={"PCT-AL10%01%CloudClone"};
+   9          //code uint8_t WIFI_Key[]={"21203873"};
+  10          
+  11          xdata uint8_t ESP8266_rxBuff[128];
+  12          xdata uint8_t ESP8266_txBuff[64];
+  13          uint8_t rx_cnt,tx_cnt;
+  14          bit rx_over;
+  15          bit key_flag;
+  16          uint16_t pingCnt;
+  17          uint8_t rx_mode,uartRxTimeout;
+  18          //void ESP8266_Init(void)
+  19          //{
+  20          //  ESP8266_exitTransparentMode();
+  21          //}
+  22          //退出透传模式
+  23          void ESP8266_exitTransparentMode(void)
+  24          {
+  25   1      
+  26   1        switch(key_cval)
+  27   1        {
+  28   2          case S2_KEY:
+  29   2            if(key_flag==0)
+  30   2            {
+  31   3              key_flag=1;
+  32   3              rx_mode=AT_MODE;
+  33   3              uart0_send_str("+++");
+  34   3            }
+  35   2          break;
+  36   2          case S3_KEY:
+  37   2            if(key_flag==0)
+  38   2            {
+  39   3              key_flag=1;
+  40   3              rx_mode=AT_MODE;
+  41   3              uart0_send_str("AT+CIPMODE=0\r\n");
+  42   3            }
+  43   2          break;
+  44   2          case S4_KEY:
+  45   2            if(key_flag==0)
+  46   2            {
+  47   3              key_flag=1;
+  48   3              mode=MODE_CONNECT_WIFI;
+  49   3              LCD_clearScreen();
+  50   3              LCD_displayString8x16(0,0,"  connect wifi  ");
+  51   3            }
+  52   2          break;
+  53   2          case S5_KEY:
+  54   2            if(key_flag==0)
+C51 COMPILER V9.55   ESP8266                                                               10/17/2020 16:51:36 PAGE 2   
+
+  55   2            {
+  56   3              key_flag=1;
+  57   3              mode=MODE_CONNECT_SERVER;
+  58   3              LCD_clearScreen();
+  59   3              LCD_displayString8x16(0,0," connect server ");
+  60   3            }
+  61   2          break;
+  62   2          default : key_flag=0;break;
+  63   2        }
+  64   1      }
+  65          //连接WIFI
+  66          void ESP8266_connectWifi(void)
+  67          {
+  68   1        
+  69   1        switch(key_cval)
+  70   1        {
+  71   2          case S2_KEY:
+  72   2            if(key_flag==0)
+  73   2            {
+  74   3              key_flag=1;
+  75   3              rx_mode=AT_MODE;
+  76   3              uart0_send_str("AT+CIPMODE=3\r\n");
+  77   3            }
+  78   2          break;
+  79   2          case S3_KEY:
+  80   2            if(key_flag==0)
+  81   2            {
+  82   3              key_flag=1;
+  83   3              rx_mode=AT_MODE;
+  84   3              uart0_send_str("AT+CWJAP_DEF=\"meilun_su\",\"xs045201.\"\r\n");
+  85   3            }
+  86   2          break;
+  87   2          case S4_KEY:
+  88   2            if(key_flag==0)
+  89   2            {
+  90   3              key_flag=1;
+  91   3              mode=MODE_EXITTRANSP;
+  92   3              LCD_clearScreen();
+  93   3              LCD_displayString8x16(0,0," IoT experiment ");
+  94   3              //uart0_send_str("AT+CWJAP_DEF=\"PCT-AL10%01%CloudClone\",\"21203873\"\r\n");
+  95   3            }
+  96   2          break;
+  97   2          case S5_KEY:
+  98   2            if(key_flag==0)
+  99   2            {
+ 100   3              key_flag=1;
+ 101   3              mode=MODE_CONNECT_SERVER;
+ 102   3              LCD_clearScreen();
+ 103   3              LCD_displayString8x16(0,0," connect server ");
+ 104   3            }
+ 105   2          break;
+ 106   2          default : key_flag=0;break;
+ 107   2        }
+ 108   1      }
+ 109          //连接服务器
+ 110          void ESP8266_connectServer(void)
+ 111          {
+ 112   1        switch(key_cval)
+ 113   1        {
+ 114   2          case S2_KEY:
+ 115   2            if(key_flag==0)
+ 116   2            {
+C51 COMPILER V9.55   ESP8266                                                               10/17/2020 16:51:36 PAGE 3   
+
+ 117   3              key_flag=1;
+ 118   3              rx_mode=AT_MODE;
+ 119   3              uart0_send_str("AT+CIPSTART=\"TCP\",\"a1deiQK0vng.iot-as-mqtt.cn-shanghai.aliyuncs.com\",1883\r\n");
+ 120   3            }
+ 121   2          break;
+ 122   2          case S3_KEY:
+ 123   2            if(key_flag==0)
+ 124   2            {
+ 125   3              key_flag=1;
+ 126   3              rx_mode=AT_MODE;
+ 127   3              uart0_send_str("AT+CIPMODE=1\r\n");
+ 128   3            }
+ 129   2          break;
+ 130   2          case S4_KEY:
+ 131   2            if(key_flag==0)
+ 132   2            {
+ 133   3              key_flag=1;
+ 134   3              rx_mode=ONE_MODE;
+ 135   3              uart0_send_str("AT+CIPSEND\r\n");
+ 136   3            }
+ 137   2          break;
+ 138   2          case S5_KEY:
+ 139   2            if(key_flag==0)
+ 140   2            {
+ 141   3              key_flag=1;
+ 142   3              mode=MODE_CONNECT_CLOUD;
+ 143   3              LCD_clearScreen();
+ 144   3              LCD_displayString8x16(0,0," connect cloud  ");
+ 145   3            }
+ 146   2          break;
+ 147   2          default : key_flag=0;break;
+ 148   2        }
+ 149   1      }
+ 150          
+ 151          //连接物联网云平台
+ 152          void ESP6266_connectIOTServer(void)
+ 153          {
+ 154   1        switch(key_cval)
+ 155   1        {
+ 156   2          case S2_KEY:
+ 157   2            if(key_flag==0)
+ 158   2            {
+ 159   3              key_flag=1;
+ 160   3              rx_mode=MQTT_MODE;
+ 161   3              MQTT_ConectPack();    //发送连接
+ 162   3            }
+ 163   2          break;
+ 164   2          case S3_KEY:
+ 165   2            if(key_flag==0)
+ 166   2            {
+ 167   3              key_flag=1;
+ 168   3              rx_mode=MQTT_MODE;
+ 169   3              MQTT_Subscribe();   //开启订阅
+ 170   3            }
+ 171   2          break;
+ 172   2          case S4_KEY:
+ 173   2            if(key_flag==0)
+ 174   2            {
+ 175   3              key_flag=1;
+ 176   3            }
+ 177   2          break;
+ 178   2          case S5_KEY:
+C51 COMPILER V9.55   ESP8266                                                               10/17/2020 16:51:36 PAGE 4   
+
+ 179   2            if(key_flag==0)
+ 180   2            {
+ 181   3              key_flag=1;
+ 182   3              mode=MODE_CONMMUNICATION;
+ 183   3              LCD_clearScreen();
+ 184   3              LCD_displayString8x16(0,0,"IoT conmmunicat ");
+ 185   3            }
+ 186   2          break;
+ 187   2          default : key_flag=0;break;
+ 188   2        }
+ 189   1        
+ 190   1      }
+ 191          
+ 192          //连接物联网云平台
+ 193          void ESP6266_conmmunication(void)
+ 194          {
+ 195   1        pingCnt++;
+ 196   1        if(pingCnt>=10000/MAIN_CYCTIME)
+ 197   1        {
+ 198   2          pingCnt=0;
+ 199   2          rx_mode=MQTT_MODE;
+ 200   2          MQTT_PingREQ();
+ 201   2        }
+ 202   1        switch(key_cval)
+ 203   1        {
+ 204   2          case S2_KEY:    //发送数据
+ 205   2            if(key_flag==0)
+ 206   2            {
+ 207   3              key_flag=1;
+ 208   3              pingCnt=0;  //心跳包计数归零
+ 209   3              rx_mode=MQTT_MODE;
+ 210   3              MQTT_PublishQs0(dataTemp[2],guangdu);
+ 211   3            }
+ 212   2          break;
+ 213   2          case S3_KEY:    //
+ 214   2            if(key_flag==0)
+ 215   2            {
+ 216   3              key_flag=1;
+ 217   3              pingCnt=0;  //心跳包计数归零
+ 218   3            }
+ 219   2          break;
+ 220   2          case S4_KEY:
+ 221   2            if(key_flag==0)
+ 222   2            {
+ 223   3              key_flag=1;
+ 224   3              pingCnt=0;  //心跳包计数归零
+ 225   3            }
+ 226   2          break;
+ 227   2          case S5_KEY:    //断开连接物联网云平台
+ 228   2            if(key_flag==0)
+ 229   2            {
+ 230   3              key_flag=1;
+ 231   3              pingCnt=0;  //心跳包计数归零
+ 232   3              rx_mode=MQTT_MODE;
+ 233   3              MQTT_disconect();
+ 234   3              mode=MODE_EXITTRANSP;
+ 235   3              LCD_clearScreen();
+ 236   3              LCD_displayString8x16(0,0," IoT experiment ");
+ 237   3            }
+ 238   2          break;
+ 239   2          default : key_flag=0;break;
+ 240   2        }
+C51 COMPILER V9.55   ESP8266                                                               10/17/2020 16:51:36 PAGE 5   
+
+ 241   1      }
+ 242          
+ 243          //uint8_t compareStr(uint8_t *str)
+ 244          //{
+ 245          //  while()
+ 246          //}
+ 247          
+ 248          /*----------------------------
+ 249          Uart1_ISR 中断服务程序
+ 250          -----------------------------*/
+ 251          void Uart1_ISR() interrupt 4
+ 252          {
+ 253   1        //uint8_t temp;
+ 254   1          if (RI)
+ 255   1          {
+ 256   2              RI = 0;                 //清除RI位
+ 257   2          ESP8266_rxBuff[rx_cnt] = SBUF;
+ 258   2          uartRxTimeout=1;
+ 259   2          if(rx_mode==MQTT_MODE)
+ 260   2          {
+ 261   3            if(rx_cnt>=1)
+ 262   3            {
+ 263   4              if((rx_cnt-1)>=ESP8266_rxBuff[1])
+ 264   4              {
+ 265   5                rx_over=1;    //结束
+ 266   5                rx_cnt++;
+ 267   5                ESP8266_rxBuff[rx_cnt] = 0x00;
+ 268   5                rx_cnt=0;
+ 269   5              }
+ 270   4              else rx_cnt++;
+ 271   4            }
+ 272   3            else rx_cnt++;
+ 273   3          }
+ 274   2          else if(rx_mode==AT_MODE)
+ 275   2          {
+ 276   3            if((ESP8266_rxBuff[rx_cnt-1] == 0x0d)&&(ESP8266_rxBuff[rx_cnt] == 0x0a))
+ 277   3            {
+ 278   4              rx_over=1;    //结束
+ 279   4              rx_cnt++;
+ 280   4              ESP8266_rxBuff[rx_cnt] = 0x00;
+ 281   4              rx_cnt=0;
+ 282   4            }
+ 283   3            else
+ 284   3            {
+ 285   4              rx_cnt++;
+ 286   4            }
+ 287   3          }
+ 288   2          else//(rx_mode==ONE_MODE)
+ 289   2          {
+ 290   3            rx_over=1;    //结束
+ 291   3            rx_cnt++;
+ 292   3            ESP8266_rxBuff[rx_cnt] = 0x00;
+ 293   3            rx_cnt=0;
+ 294   3          }
+ 295   2          }
+ 296   1          if (TI)
+ 297   1          {
+ 298   2          TI = 0;     //清除TI位
+ 299   2      //    if(ESP8266_rxBuff[tx_cnt])
+ 300   2      //    {
+ 301   2      //      ESP8266_rxBuff[tx_cnt]
+ 302   2      //    }
+C51 COMPILER V9.55   ESP8266                                                               10/17/2020 16:51:36 PAGE 6   
+
+ 303   2          }
+ 304   1      }
+ 305          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    633    ----
+   CONSTANT SIZE    =    262    ----
+   XDATA SIZE       =    192    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =      6    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =      2    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

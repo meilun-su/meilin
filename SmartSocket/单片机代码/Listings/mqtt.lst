@@ -1,0 +1,277 @@
+C51 COMPILER V9.55   MQTT                                                                  10/17/2020 16:48:37 PAGE 1   
+
+
+C51 COMPILER V9.55, COMPILATION OF MODULE MQTT
+OBJECT MODULE PLACED IN .\Objects\mqtt.obj
+COMPILER INVOKED BY: E:\keil\C51\BIN\C51.EXE src\hardware\mqtt.c OPTIMIZE(8,SPEED) BROWSE INCDIR(.\src;.\src\hardware;.\
+                    -src\Library) DEBUG OBJECTEXTEND PRINT(.\Listings\mqtt.lst) TABS(2) OBJECT(.\Objects\mqtt.obj)
+
+line level    source
+
+   1          #include "main.h"
+   2          #include "mqtt.h"
+   3          #include "kaiguan.h"
+   4          
+   5          //code uint8_t  PRODUCTKEY[]={"a1z6Igb2mrC"};                                 //²úÆ·ID
+   6          //#define  PRODUCTKEY_LEN   (sizeof(PRODUCTKEY)-1)                            //²úÆ·ID³¤¶È
+   7          //code uint8_t  DEVICENAME[]={"my_switch"};                                  //Éè±¸Ãû  
+   8          //#define  DEVICENAME_LEN       (sizeof(DEVICENAME)-1)                            //Éè±¸Ãû³¤¶È
+   9          //code uint8_t  DEVICESECRE[]={"5e3eccdb76b47ee913a51fab8b29c758"};            //Éè±¸ÃØÔ¿   
+  10          //#define  DEVICESECRE_LEN      (sizeof(DEVICESECRE)-1)                           //Éè±¸ÃØÔ¿³¤¶È
+  11          
+  12          code uint8_t  TOPIC_Subscribe[]={"/a1deiQK0vng/hardwaresu/user/servertohardware"};      //ÐèÒª¶©ÔÄµÄÖ÷Ìâ  (Êý
+             -¾ÝÏÂ´«)
+  13          #define SUBSCRIBE_LEN (sizeof(TOPIC_Subscribe)-1)
+  14          code uint8_t  TOPIC_Publish[]={"/a1deiQK0vng/hardwaresu/user/hardwaretoserver"};        //ÐèÒª·¢²¼µÄÖ÷Ìâ  
+             - (Êý¾ÝÉÏ´«)
+  15          #define PUBLISH_LEN (sizeof(TOPIC_Publish)-1)
+  16          
+  17          code uint8_t CLIENTID[]={"sjj1|securemode=3,signmethod=hmacsha1|"};     //¿Í»§ID
+  18          #define CLIENTID_LEN (sizeof(CLIENTID)-1)
+  19          
+  20          code uint8_t USERNAME[]={"hardwaresu&a1deiQK0vng"};     //¹Ì¶¨¸ñÊ½   ${YourDeviceName}&${YourProductKey}
+  21          #define USERNAME_LEN (sizeof(USERNAME)-1)
+  22          
+  23          code uint8_t PASSWARD[]={"497A5E4C33A2A423467A53871E4F6291407D2B90"}; //ÃÜÂë£¬ÐèÒªmqttÇ©Ãû¹¤¾ß¼ÆËã
+  24          #define PASSWARD_LEN (sizeof(PASSWARD)-1)
+  25          
+  26          #define FIXED_LEN   2   //Á¬½Ó±¨ÎÄÖÐ£¬¹Ì¶¨±¨Í·³¤¶È=2
+  27          #define VARIABLE_LEN  10    //Á¬½Ó±¨ÎÄÖÐ£¬¿É±ä±¨Í·³¤¶È=10
+  28          
+  29          uint8_t Payload_len;
+  30          uint8_t ClientID_len,Username_len,Passward_len;
+  31          xdata uint8_t MQTT_Buff[200];
+  32          
+  33          /*----------------------------------------------------------*/
+  34          /*º¯ÊýÃû£ºÁ¬½Ó·þÎñÆ÷±¨ÎÄ                                    */
+  35          /*²Î  Êý£ºÎÞ                                                */
+  36          /*·µ»ØÖµ£ºÎÞ                                                */
+  37          /*----------------------------------------------------------*/
+  38          void MQTT_ConectPack(void)
+  39          { 
+  40   1      //  Fixed_len = 2;                                                        //Á¬½Ó±¨ÎÄÖÐ£¬¹Ì¶¨±¨Í·³¤¶È=2
+  41   1      //  Variable_len = 10;                                                    //Á¬½Ó±¨ÎÄÖÐ£¬¿É±ä±¨Í·³¤¶È=10
+  42   1        
+  43   1        Payload_len = 2 + CLIENTID_LEN + 2 + USERNAME_LEN + 2 + PASSWARD_LEN; //×Ü±¨ÎÄ³¤¶È       
+  44   1        
+  45   1        MQTT_Buff[0]=0x10;                              //µÚ1¸ö×Ö½Ú £º¹Ì¶¨0x01  
+  46   1        MQTT_Buff[1]=VARIABLE_LEN + Payload_len;        //µÚ2¸ö×Ö½Ú £º¿É±ä±¨Í·+ÓÐÐ§¸ººÉµÄ³¤¶È
+  47   1        MQTT_Buff[2]=0x00;                      //µÚ3¸ö×Ö½Ú £º¹Ì¶¨0x00              
+  48   1        MQTT_Buff[3]=0x04;                              //µÚ4¸ö×Ö½Ú £º¹Ì¶¨0x04
+  49   1        MQTT_Buff[4]=0x4D;                //µÚ5¸ö×Ö½Ú £º¹Ì¶¨0x4D
+  50   1        MQTT_Buff[5]=0x51;                //µÚ6¸ö×Ö½Ú £º¹Ì¶¨0x51
+  51   1        MQTT_Buff[6]=0x54;                //µÚ7¸ö×Ö½Ú £º¹Ì¶¨0x54
+  52   1        MQTT_Buff[7]=0x54;                //µÚ8¸ö×Ö½Ú £º¹Ì¶¨0x54
+C51 COMPILER V9.55   MQTT                                                                  10/17/2020 16:48:37 PAGE 2   
+
+  53   1        MQTT_Buff[8]=0x04;                //µÚ9¸ö×Ö½Ú £º¹Ì¶¨0x04
+  54   1        MQTT_Buff[9]=0xC2;                //µÚ10¸ö×Ö½Ú£ºÊ¹ÄÜÓÃ»§ÃûºÍÃÜÂëÐ£Ñé£¬²»Ê¹ÓÃÒÅÖö£¬²»±£Áô»á»°
+  55   1        MQTT_Buff[10]=0x00;                 //µÚ11¸ö×Ö½Ú£º±£»îÊ±¼ä¸ß×Ö½Ú 0x00
+  56   1        MQTT_Buff[11]=0x3c;               //µÚ12¸ö×Ö½Ú£º±£»îÊ±¼ä¸ß×Ö½Ú 0x64   100s
+  57   1        
+  58   1        /*     CLIENT_ID      */
+  59   1        MQTT_Buff[12] = 0;//CLIENTID_LEN/256;                             //¿Í»§¶ËID³¤¶È¸ß×Ö½Ú
+  60   1        MQTT_Buff[13] = CLIENTID_LEN%256;                             //¿Í»§¶ËID³¤¶ÈµÍ×Ö½Ú
+  61   1        memcpy(&MQTT_Buff[14],CLIENTID,CLIENTID_LEN);                       //¸´ÖÆ¹ýÀ´¿Í»§¶ËID×Ö´®  
+  62   1        /*     ÓÃ»§Ãû        */
+  63   1        MQTT_Buff[14+CLIENTID_LEN] = 0;//USERNAME_LEN/256;                  //ÓÃ»§Ãû³¤¶È¸ß×Ö½Ú
+  64   1        MQTT_Buff[15+CLIENTID_LEN] = USERNAME_LEN%256;                //ÓÃ»§Ãû³¤¶ÈµÍ×Ö½Ú
+  65   1        memcpy(&MQTT_Buff[16+CLIENTID_LEN],USERNAME,USERNAME_LEN);              //¸´ÖÆ¹ýÀ´ÓÃ»§Ãû×Ö´®  
+  66   1        /*      ÃÜÂë        */
+  67   1        MQTT_Buff[16+CLIENTID_LEN+USERNAME_LEN] = 0;//PASSWARD_LEN/256;         //ÃÜÂë³¤¶È¸ß×Ö½Ú
+  68   1        MQTT_Buff[17+CLIENTID_LEN+USERNAME_LEN] = PASSWARD_LEN%256;         //ÃÜÂë³¤¶ÈµÍ×Ö½Ú
+  69   1        memcpy(&MQTT_Buff[18+CLIENTID_LEN+USERNAME_LEN],PASSWARD,PASSWARD_LEN); //¸´ÖÆ¹ýÀ´ÃÜÂë×Ö´®
+  70   1      
+  71   1        MQTT_sendBuff(MQTT_Buff, FIXED_LEN + VARIABLE_LEN + Payload_len);      //¼ÓÈë·¢ËÍÊý¾Ý»º³åÇø
+  72   1      }
+  73          /*----------------------------------------------------------*/
+  74          /*º¯ÊýÃû£ºSUBSCRIBE¶©ÔÄtopic±¨ÎÄ                            */
+  75          /*²Î  Êý£ºQoS£º¶©ÔÄµÈ¼¶                                     */
+  76          /*²Î  Êý£ºtopic_name£º¶©ÔÄtopic±¨ÎÄÃû³Æ                     */
+  77          /*·µ»ØÖµ£ºÎÞ                                                */
+  78          /*----------------------------------------------------------*/
+  79          void MQTT_Subscribe(void)
+  80          { 
+  81   1        //Fixed_len = 2;                              //SUBSCRIBE±¨ÎÄÖÐ£¬¹Ì¶¨±¨Í·³¤¶È=2
+  82   1        //Variable_len = 2;                           //SUBSCRIBE±¨ÎÄÖÐ£¬¿É±ä±¨Í·³¤¶È=2 
+  83   1        Payload_len = 2 + SUBSCRIBE_LEN + 1;   //¼ÆËãÓÐÐ§¸ººÉ³¤¶È = 2×Ö½Ú(topic_name³¤¶È)+ topic_name×Ö·û´®µÄ³¤¶È
+             - + 1×Ö½Ú·þÎñµÈ¼¶
+  84   1        
+  85   1        MQTT_Buff[0]=0x82;                                    //µÚ1¸ö×Ö½Ú £º¹Ì¶¨0x82                      
+  86   1        MQTT_Buff[1]=VARIABLE_LEN + Payload_len;              //µÚ2¸ö×Ö½Ú £º¿É±ä±¨Í·+ÓÐÐ§¸ººÉµÄ³¤¶È 
+  87   1        MQTT_Buff[2]=0x00;                                    //µÚ3¸ö×Ö½Ú £º±¨ÎÄ±êÊ¶·û¸ß×Ö½Ú£¬¹Ì¶¨Ê¹ÓÃ0x00
+  88   1        MQTT_Buff[3]=0x01;                                  //µÚ4¸ö×Ö½Ú £º±¨ÎÄ±êÊ¶·ûµÍ×Ö½Ú£¬¹Ì¶¨Ê¹ÓÃ0x01
+  89   1        MQTT_Buff[4]=SUBSCRIBE_LEN/256;                  //µÚ5¸ö×Ö½Ú £ºtopic_name³¤¶È¸ß×Ö½Ú
+  90   1        MQTT_Buff[5]=SUBSCRIBE_LEN%256;             //µÚ6¸ö×Ö½Ú £ºtopic_name³¤¶ÈµÍ×Ö½Ú
+  91   1        memcpy(&MQTT_Buff[6],TOPIC_Subscribe,SUBSCRIBE_LEN);  //µÚ7¸ö×Ö½Ú¿ªÊ¼ £º¸´ÖÆ¹ýÀ´topic_name×Ö´®    
+  92   1        MQTT_Buff[6+SUBSCRIBE_LEN]=0;                  //×îºó1¸ö×Ö½Ú£º¶©ÔÄµÈ¼¶Îª0
+  93   1        
+  94   1        MQTT_sendBuff(MQTT_Buff, FIXED_LEN + VARIABLE_LEN + Payload_len);  //¼ÓÈë·¢ËÍÊý¾Ý»º³åÇø
+  95   1      }
+  96          
+  97          /*----------------------------------------------------------*/
+  98          /*º¯ÊýÃû£ºµÈ¼¶0 ·¢²¼ÏûÏ¢±¨ÎÄ                                */
+  99          /*²Î  Êý£ºtopic_name£ºtopicÃû³Æ                             */
+ 100          /*²Î  Êý£ºdata£ºÊý¾Ý                                        */
+ 101          /*²Î  Êý£ºdata_len£ºÊý¾Ý³¤¶È                                */
+ 102          /*·µ»ØÖµ£ºÎÞ                                                */
+ 103          /*----------------------------------------------------------*/
+ 104          //xdata uint8_t Json_WenduTab[]={"{\"temperature\":25}"};
+ 105          //#define Json_WenduTab_Len (sizeof(Json_WenduTab)-1)
+ 106          //xdata uint8_t Json_LightTab[]={"{\"light\":125}"};
+ 107          //#define Json_LightTab_Len (sizeof(Json_LightTab)-1)
+ 108          
+ 109          xdata uint8_t Json_Tab[]={"{\"temperature\":25,\"light\":125}"};
+ 110          #define Json_Tab_Len (sizeof(Json_Tab)-1)
+ 111          
+ 112          void MQTT_PublishQs0(uint8_t wendu, uint8_t guang)
+ 113          { 
+C51 COMPILER V9.55   MQTT                                                                  10/17/2020 16:48:37 PAGE 3   
+
+ 114   1        uint8_t Variable_len;
+ 115   1        //Fixed_len = 2;                             //¹Ì¶¨±¨Í·³¤¶È£º2×Ö½Ú
+ 116   1        Variable_len = 2 + PUBLISH_LEN;          //¿É±ä±¨Í·³¤¶È£º2×Ö½Ú(topic³¤¶È)+ topic×Ö·û´®µÄ³¤¶È
+ 117   1        Payload_len = Json_Tab_Len;                    //ÓÐÐ§¸ººÉ³¤¶È£º¾ÍÊÇdata_len
+ 118   1        
+ 119   1        MQTT_Buff[0]=0x30;                         //µÚ1¸ö×Ö½Ú £º¹Ì¶¨0xC0                
+ 120   1        MQTT_Buff[1]=Variable_len + Payload_len;   //µÚ2¸ö×Ö½Ú £º¿É±ä±¨Í·+ÓÐÐ§¸ººÉµÄ³¤¶È  
+ 121   1        MQTT_Buff[2]=PUBLISH_LEN/256;            //µÚ3¸ö×Ö½Ú £ºtopic³¤¶È¸ß×Ö½Ú
+ 122   1        MQTT_Buff[3]=PUBLISH_LEN%256;          //µÚ4¸ö×Ö½Ú £ºtopic³¤¶ÈµÍ×Ö½Ú
+ 123   1        memcpy(&MQTT_Buff[4],TOPIC_Publish,PUBLISH_LEN); //µÚ5¸ö×Ö½Ú¿ªÊ¼ £º¿½±´topic×Ö·û´®  
+ 124   1        
+ 125   1        Json_Tab[15]=wendu/10%10+'0';
+ 126   1        Json_Tab[16]=wendu%10+'0';
+ 127   1        
+ 128   1        Json_Tab[26]=guang/100%10+'0';
+ 129   1        Json_Tab[27]=guang/10%10+'0';
+ 130   1        Json_Tab[28]=guang%10+'0';
+ 131   1        
+ 132   1        memcpy(&MQTT_Buff[4+PUBLISH_LEN],Json_Tab,Json_Tab_Len);   //¿½±´dataÊý¾Ý
+ 133   1        
+ 134   1      //  Json_WenduTab[15]=wendu/10%10+'0';
+ 135   1      //  Json_WenduTab[16]=wendu%10+'0';
+ 136   1      //  
+ 137   1      //  Json_LightTab[9]=guang/100%10+'0';
+ 138   1      //  Json_LightTab[10]=guang/10%10+'0';
+ 139   1      //  Json_LightTab[11]=guang%10+'0';
+ 140   1        
+ 141   1        
+ 142   1        
+ 143   1        //memcpy(&MQTT_Buff[4+PUBLISH_LEN+Json_WenduTab_Len],Json_LightTab,Json_LightTab_Len);
+ 144   1        
+ 145   1        MQTT_sendBuff(MQTT_Buff, FIXED_LEN + Variable_len + Payload_len);  //¼ÓÈë·¢ËÍÊý¾Ý»º³åÇø
+ 146   1      }
+ 147          /*----------------------------------------------------------*/
+ 148          /*º¯ÊýÃû£º´¦Àí·þÎñÆ÷·¢À´µÄµÈ¼¶0µÄÍÆËÍ                       */
+ 149          /*²Î  Êý£ºredata£º½ÓÊÕµÄÊý¾Ý                                */
+ 150          /*·µ»ØÖµ£ºÎÞ                                                */
+ 151          /*----------------------------------------------------------*/
+ 152          void MQTT_DealPushdata_Qs0(unsigned char *redata)
+ 153          {
+ 154   1        //uint8_t  re_len;                           //¶¨ÒåÒ»¸ö±äÁ¿£¬´æ·Å½ÓÊÕµÄÊý¾Ý×Ü³¤¶È
+ 155   1        //uint8_t  pack_num;                         //¶¨ÒåÒ»¸ö±äÁ¿£¬µ±¶à¸öÍÆËÍÒ»Æð¹ýÀ´Ê±£¬±£´æÍÆËÍµÄ¸öÊý
+ 156   1          //uint8_t  temp_len;                         //¶¨ÒåÒ»¸ö±äÁ¿£¬ÔÝ´æÊý¾Ý
+ 157   1          uint8_t  totle_len;                        //¶¨ÒåÒ»¸ö±äÁ¿£¬´æ·ÅÒÑ¾­Í³¼ÆµÄÍÆËÍµÄ×ÜÊý¾ÝÁ¿
+ 158   1        uint8_t  topic_len;                      //¶¨ÒåÒ»¸ö±äÁ¿£¬´æ·ÅÍÆËÍÖÐÖ÷ÌâµÄ³¤¶È
+ 159   1        //uint8_t  cmd_len;                          //¶¨ÒåÒ»¸ö±äÁ¿£¬´æ·ÅÍÆËÍÖÐ°üº¬µÄÃüÁîÊý¾ÝµÄ³¤¶È
+ 160   1        //uint8_t  cmd_loca;                         //¶¨ÒåÒ»¸ö±äÁ¿£¬´æ·ÅÍÆËÍÖÐ°üº¬µÄÃüÁîµÄÆðÊ¼Î»ÖÃ
+ 161   1        //uint8_t  i;                                //¶¨ÒåÒ»¸ö±äÁ¿£¬ÓÃÓÚforÑ­»·
+ 162   1        xdata uint8_t temp[64];        //ÁÙÊ±»º³åÇø
+ 163   1        //uint8_t *data1;                   //redata¹ýÀ´µÄÊ±ºò£¬µÚÒ»¸ö×Ö½ÚÊÇÊý¾Ý×ÜÁ¿£¬dataÓÃÓÚÖ¸ÏòredataµÄµÚ2¸ö×Ö
+             -½Ú£¬ÕæÕýµÄÊý¾Ý¿ªÊ¼µÄµØ·½
+ 164   1          
+ 165   1        if(redata[0]!=0x30)return;      //·þÎñÆ÷·¢ËÍÊý¾Ýµ½Éè±¸µÄ¹Ì¶¨±¨Í·
+ 166   1        totle_len = redata[1];
+ 167   1        topic_len = redata[3];        //Topic³¤¶ÈÐ¡ÓÚ256Ê±¿ÉÖ±½Ó¶ÁÈ¡µÍÎ»µÄÖµ
+ 168   1        memcpy(temp,&redata[2+2+topic_len],totle_len-1-topic_len);
+ 169   1        if(strstr(temp,"{\"switch\":1}")) //´ò¿ª¿ª¹Ø
+ 170   1        {
+ 171   2          //switch_mode=1;
+ 172   2          switch_open();
+ 173   2        }
+ 174   1        else if(strstr(temp,"{\"switch\":0}"))  //¹Ø±Õ¿ª¹Ø
+C51 COMPILER V9.55   MQTT                                                                  10/17/2020 16:48:37 PAGE 4   
+
+ 175   1        {
+ 176   2          //switch_mode=0;
+ 177   2          switch_close();
+ 178   2        }
+ 179   1        
+ 180   1        
+ 181   1      //  re_len = redata[0];                                         //»ñÈ¡½ÓÊÕµÄÊý¾Ý×Ü³¤¶È
+ 182   1      //  data1 = &redata[1];                                              //dataÖ¸ÏòredataµÄµÚ2¸ö×Ö½Ú£¬ÕæÕýµÄÊý¾
+             -Ý¿ªÊ¼µÄ 
+ 183   1      //  pack_num = temp_len = totle_len = 0;                      //¸÷¸ö±äÁ¿ÇåÁã
+ 184   1      //  do{
+ 185   1      //    pack_num++;                                           //¿ªÊ¼Ñ­»·Í³¼ÆÍÆËÍµÄ¸öÊý£¬Ã¿´ÎÑ­»·ÍÆËÍµÄ¸öÊý+1
+ 186   1      //    temp_len = data1[1+totle_len]+2;                      //¼ÆËã±¾´ÎÍ³¼ÆµÄÍÆËÍµÄÊý¾Ý³¤¶È
+ 187   1      //    totle_len += temp_len;                                //ÀÛ¼ÆÍ³¼ÆµÄ×ÜµÄÍÆËÍµÄÊý¾Ý³¤¶È
+ 188   1      //    re_len -= temp_len ;                                  //½ÓÊÕµÄÊý¾Ý×Ü³¤¶È ¼õÈ¥ ±¾´ÎÍ³¼ÆµÄÍÆËÍµÄ×Ü³¤¶È     
+             - 
+ 189   1      //  }while(re_len!=0);                                        //Èç¹û½ÓÊÕµÄÊý¾Ý×Ü³¤¶ÈµÈÓÚ0ÁË£¬ËµÃ÷Í³¼ÆÍê±ÏÁË
+ 190   1      //  //if(pack_num!=1)u1_printf("±¾´Î½ÓÊÕÁË%d¸öÍÆËÍÊý¾Ý\r\n",pack_num);//´®¿ÚÊä³öÐÅÏ¢
+ 191   1      //  temp_len = totle_len = 0;                                 //¸÷¸ö±äÁ¿ÇåÁã
+ 192   1      //  for(i=0;i<pack_num;i++){                                        //ÒÑ¾­Í³¼Æµ½ÁË½ÓÊÕµÄÍÆËÍ¸öÊý£¬¿ªÊ¼forÑ­
+             -»·£¬È¡³öÃ¿¸öÍÆËÍµÄÊý¾Ý 
+ 193   1      //    topic_len = data1[2+totle_len]*256+data1[3+totle_len] + 2;    //¼ÆËã±¾´ÎÍÆËÍÊý¾ÝÖÐÖ÷ÌâÕ¼ÓÃµÄÊý¾ÝÁ¿
+ 194   1      //    cmd_len = data1[1+totle_len]-topic_len;                      //¼ÆËã±¾´ÎÍÆËÍÊý¾ÝÖÐÃüÁîÊý¾ÝÕ¼ÓÃµÄÊý¾ÝÁ¿
+ 195   1      //    cmd_loca = totle_len + 2 +  topic_len;                      //¼ÆËã±¾´ÎÍÆËÍÊý¾ÝÖÐÃüÁîÊý¾Ý¿ªÊ¼µÄÎ»ÖÃ
+ 196   1      //    memcpy(temp,&data1[cmd_loca],cmd_len);                       //ÃüÁîÊý¾Ý¿½±´³öÀ´                    
+ 197   1      //    CMDBuf_Deal(temp, cmd_len);                                 //¼ÓÈëÃüÁîµ½»º³åÇø
+ 198   1      //    temp_len = data1[1+totle_len]+2;                             //¼ÇÂ¼±¾´ÎÍÆËÍµÄ³¤¶È
+ 199   1      //    totle_len += temp_len;                                      //ÀÛ¼ÆÒÑ¾­Í³¼ÆµÄÍÆËÍµÄÊý¾Ý³¤¶È
+ 200   1      //  } 
+ 201   1      }
+ 202          /*----------------------------------------------------------*/
+ 203          /*º¯ÊýÃû£ºPING±¨ÎÄ£¬ÐÄÌø°ü                                  */
+ 204          /*²Î  Êý£ºÎÞ                                                */
+ 205          /*·µ»ØÖµ£ºÎÞ                                                */
+ 206          /*----------------------------------------------------------*/
+ 207          void MQTT_PingREQ(void)
+ 208          {
+ 209   1        MQTT_Buff[0]=0xC0;              //µÚ1¸ö×Ö½Ú £º¹Ì¶¨0xC0                      
+ 210   1        MQTT_Buff[1]=0x00;              //µÚ2¸ö×Ö½Ú £º¹Ì¶¨0x00 
+ 211   1      
+ 212   1        MQTT_sendBuff(MQTT_Buff, 2);   //¼ÓÈëÊý¾Ýµ½»º³åÇø
+ 213   1      }
+ 214          /*----------------------------------------------------------*/
+ 215          /*º¯ÊýÃû£ºÓëÔÆÆ½Ì¨¶Ï¿ªÁ¬½Ó                                  */
+ 216          /*²Î  Êý£ºÎÞ                                                */
+ 217          /*·µ»ØÖµ£ºÎÞ                                                */
+ 218          /*----------------------------------------------------------*/
+ 219          void MQTT_disconect(void)
+ 220          {
+ 221   1        MQTT_Buff[0]=0xe0;              //µÚ1¸ö×Ö½Ú £º¹Ì¶¨0xC0                      
+ 222   1        MQTT_Buff[1]=0x00;              //µÚ2¸ö×Ö½Ú £º¹Ì¶¨0x00 
+ 223   1      
+ 224   1        MQTT_sendBuff(MQTT_Buff, 2);   //¼ÓÈëÊý¾Ýµ½»º³åÇø
+ 225   1      }
+ 226          
+ 227          
+ 228          //void memcpy(uint8_t *targetData,uint8_t *sourceData,uint8_t len)
+ 229          //{
+ 230          //  uint8_t i;
+ 231          //  for(i=0;i<len;i++)
+ 232          //  {
+ 233          //    targetData[i] = sourceData[i];
+C51 COMPILER V9.55   MQTT                                                                  10/17/2020 16:48:37 PAGE 5   
+
+ 234          //  }
+ 235          //}
+ 236          
+ 237          
+ 238          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    541    ----
+   CONSTANT SIZE    =    221    ----
+   XDATA SIZE       =    231      64
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =      4       4
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

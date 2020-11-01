@@ -1,0 +1,112 @@
+C51 COMPILER V9.55   UART0                                                                 10/17/2020 16:48:36 PAGE 1   
+
+
+C51 COMPILER V9.55, COMPILATION OF MODULE UART0
+OBJECT MODULE PLACED IN .\Objects\uart0.obj
+COMPILER INVOKED BY: E:\keil\C51\BIN\C51.EXE src\Library\uart0.c OPTIMIZE(8,SPEED) BROWSE INCDIR(.\src;.\src\hardware;.\
+                    -src\Library) DEBUG OBJECTEXTEND PRINT(.\Listings\uart0.lst) TABS(2) OBJECT(.\Objects\uart0.obj)
+
+line level    source
+
+   1          #include "main.h"
+   2          #include "uart0.h"
+   3          
+   4          //===========================================================
+   5          //    配置UART0 
+   6          //  使用定时器1做波特率发生器
+   7          //===========================================================
+   8          void uart0_Config(void)
+   9          {
+  10   1        SCON = 0x50;    //8位数据,可变波特率
+  11   1        PCON |= SMOD;
+  12   1        T2MOD |= bT1_CLK;
+  13   1        TMOD &= 0x0F;
+  14   1        TMOD |= 0x20;   //设定定时器1为8位自动重装方式
+  15   1        TL1 = TH1 = (256-FOSC/4/16/UART0_BAUDRATE);     //设定定时初值
+  16   1        ET1 = 0;      //禁止定时器1中断
+  17   1        TR1 = 1;      //启动定时器1
+  18   1        ES = 1;       //不使能串口中断
+  19   1          
+  20   1          //TXD和RXD设为准双向口
+  21   1          SetPINQuasiBidirectional(UART0_TXD_PORT,UART0_TXD_PIN);
+  22   1        //EnablePullupResistor(UART0_TXD_PORT,UART0_TXD_PIN);
+  23   1          SetPINQuasiBidirectional(UART0_RXD_PORT,UART0_RXD_PIN);
+  24   1        //EnablePullupResistor(UART0_RXD_PORT,UART0_RXD_PIN);
+  25   1        
+  26   1      }
+  27          //===========================================================
+  28          //    配置UART1 发送数据
+  29          //  使用定时器1做波特率发生器
+  30          //===========================================================
+  31          void uart0_send_byte(uint8_t dat)
+  32          {
+  33   1        TI = 0;
+  34   1        SBUF = dat;
+  35   1        while(TI==0);
+  36   1      }
+  37          void uart0_send_data(uint8_t *databuf, uint16_t n)
+  38          {
+  39   1        while(n--)
+  40   1        {
+  41   2          uart0_send_byte(*databuf);
+  42   2          databuf++;
+  43   2        }
+  44   1      }
+  45          
+  46          ///*-------------------------------------------------*/
+  47          ///*函数名：串口0发送缓冲区中的数据                  */
+  48          ///*参  数：data：数据                               */
+  49          ///*返回值：无                                       */
+  50          ///*-------------------------------------------------*/
+  51          //void uart0_TxData(unsigned char *dataTem)
+  52          //{
+  53          //  uint8_t i;
+  54          //  for(i = 1;i <= dataTem[0];i ++){      
+C51 COMPILER V9.55   UART0                                                                 10/17/2020 16:48:36 PAGE 2   
+
+  55          //    uart0_send_byte(dataTem[1]);
+  56          //  }
+  57          //}
+  58          
+  59          void uart0_send_str(uint8_t *str)
+  60          {
+  61   1        ES = 0;
+  62   1        TI = 0;
+  63   1        while(*str)
+  64   1        {
+  65   2          uart0_send_byte(*str);
+  66   2          str++;
+  67   2        }
+  68   1        ES = 1;
+  69   1      }
+  70          ///*----------------------------
+  71          //Uart1_ISR 中断服务程序
+  72          //-----------------------------*/
+  73          //void Uart1_ISR() interrupt 4
+  74          //{
+  75          //    if (RI)
+  76          //    {
+  77          //        RI = 0;                 //清除RI位
+  78          //        //P0 = SBUF;              //P0??????
+  79          //        //P22 = RB8;              //P2.2?????
+  80          //    }
+  81          //    if (TI)
+  82          //    {
+  83          //        TI = 0;                 //清除TI位
+  84          //    }
+  85          //}
+  86          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    100    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

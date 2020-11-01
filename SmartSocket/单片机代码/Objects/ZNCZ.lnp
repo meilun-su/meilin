@@ -1,0 +1,16 @@
+".\Objects\main.obj",
+".\Objects\guang.obj",
+".\Objects\kaiguan.obj",
+".\Objects\clksource.obj",
+".\Objects\delay.obj",
+".\Objects\tim0.obj",
+".\Objects\uart0.obj",
+".\Objects\adc.obj",
+".\Objects\JLX12864G.obj",
+".\Objects\ASCII8x16.obj",
+".\Objects\key.obj",
+".\Objects\DHT11.obj",
+".\Objects\ESP8266.obj",
+".\Objects\mqtt.obj" 
+TO ".\Objects\ZNCZ" 
+PRINT(".\Listings\ZNCZ.m51") RAMSIZE(256) 

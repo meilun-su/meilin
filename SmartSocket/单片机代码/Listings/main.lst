@@ -1,0 +1,166 @@
+C51 COMPILER V9.55   MAIN                                                                  10/17/2020 16:48:35 PAGE 1   
+
+
+C51 COMPILER V9.55, COMPILATION OF MODULE MAIN
+OBJECT MODULE PLACED IN .\Objects\main.obj
+COMPILER INVOKED BY: E:\keil\C51\BIN\C51.EXE src\main.c OPTIMIZE(8,SPEED) BROWSE INCDIR(.\src;.\src\hardware;.\src\Libra
+                    -ry) DEBUG OBJECTEXTEND PRINT(.\Listings\main.lst) TABS(2) OBJECT(.\Objects\main.obj)
+
+line level    source
+
+   1          #include "main.h"
+   2          #include "JLX12864G.h"
+   3          #include "key.h"
+   4          #include "guang.h"
+   5          #include "DHT11.h"
+   6          #include "ESP8266.h"
+   7          #include "mqtt.h"
+   8          #include "kaiguan.h"
+   9          
+  10          uint8_t main_TM,mode;
+  11          uint16_t pingTimeCnt,DHT11_startCnt;
+  12          bit switch_mode;
+  13          
+  14          void main(void)
+  15          {
+  16   1        Delay_ms(200);
+  17   1        Clock_Config();
+  18   1        switch_init();
+  19   1        
+  20   1        LCD_init();
+  21   1        LCD_clearScreen();
+  22   1        
+  23   1        TIM0_Config();
+  24   1        Key_Init();
+  25   1        
+  26   1        ADC_Config();
+  27   1        DHT11_init();
+  28   1        uart0_Config();
+  29   1        
+  30   1        LCD_displayString8x16(0,0," IoT experiment ");
+  31   1        
+  32   1        EA=1;
+  33   1        TIM0_Enable();
+  34   1        mode = MODE_EXITTRANSP;
+  35   1        rx_mode = AT_MODE;
+  36   1        uartRxTimeout=0;
+  37   1        while(1)
+  38   1        {
+  39   2          while(main_TM==0);
+  40   2          main_TM=0;
+  41   2          
+  42   2          DHT11_readData();
+  43   2          guangdu=ADC_Read_Value(1);
+  44   2          
+  45   2          switch(mode)
+  46   2          {
+  47   3            case MODE_EXITTRANSP:
+  48   3              ESP8266_exitTransparentMode();  //退出透传模式
+  49   3            break;
+  50   3            case MODE_CONNECT_WIFI:   //连接WIFI
+  51   3              ESP8266_connectWifi();
+  52   3            break;
+  53   3            case MODE_CONNECT_SERVER: //连接服务器
+  54   3              ESP8266_connectServer();
+C51 COMPILER V9.55   MAIN                                                                  10/17/2020 16:48:35 PAGE 2   
+
+  55   3            break;
+  56   3            case MODE_CONNECT_CLOUD:    //连接物联网云平台
+  57   3              ESP6266_connectIOTServer();
+  58   3            break;
+  59   3            case MODE_CONMMUNICATION:   //与物联网云平台通信
+  60   3              ESP6266_conmmunication();
+  61   3            break;
+  62   3          }
+  63   2          if(uartRxTimeout>=20)
+  64   2          {
+  65   3            rx_over=1;
+  66   3            rx_cnt=0;
+  67   3            uartRxTimeout=0;
+  68   3          }
+  69   2          if(rx_over)
+  70   2          {
+  71   3            rx_over=0;
+  72   3            if(rx_mode==AT_MODE)
+  73   3              LCD_displayString8x16(2,0,ESP8266_rxBuff);
+  74   3            else if(rx_mode==MQTT_MODE)
+  75   3            {
+  76   4              MQTT_DealPushdata_Qs0(ESP8266_rxBuff);
+  77   4              LCD_displayMQTTArray8x16(2,0,ESP8266_rxBuff);
+  78   4            }
+  79   3          }
+  80   2          
+  81   2          
+  82   2      //    DHT11_startCnt++;
+  83   2      //    if((DHT11_startCnt>1000))
+  84   2      //    {
+  85   2      //      DHT11_startCnt = 2000;
+  86   2      //      DHT11_readData();
+  87   2      //      
+  88   2      //      LCD_displayString8x16(2,0,"wendu:");
+  89   2      //      LCD_display8x16(2,8*8,dataTemp[2]/100%10+0x30);
+  90   2      //      LCD_display8x16(2,9*8,dataTemp[2]/10%10+0x30);
+  91   2      //      LCD_display8x16(2,10*8,dataTemp[2]%10+0x30);
+  92   2      //      '
+  93   2      //      LCD_displayString8x16(4,0,"shidu:");
+  94   2      //      LCD_display8x16(4,8*8,dataTemp[0]/100%10+0x30);
+  95   2      //      LCD_display8x16(4,9*8,dataTemp[0]/10%10+0x30);
+  96   2      //      LCD_display8x16(4,10*8,dataTemp[2]%10+0x30);
+  97   2      //    }
+  98   2      //    
+  99   2          keyscan();
+ 100   2          readGuang();      //读取光照度
+ 101   2      //    
+ 102   2      //    LCD_displayString8x16(0,0,"guang du:");
+ 103   2      //    LCD_display8x16(0,9*8,guangdu/1000%10+0x30);
+ 104   2      //    LCD_display8x16(0,10*8,guangdu/100%10+0x30);
+ 105   2      //    LCD_display8x16(0,11*8,guangdu/10%10+0x30);
+ 106   2      //    LCD_display8x16(0,12*8,guangdu%10+0x30);
+ 107   2      //    
+ 108   2      //    switch(key_cval)
+ 109   2      //    {
+ 110   2      //      case S2_KEY:
+ 111   2      //        LCD_displayString8x16(0,0,"key1");
+ 112   2      //      break;
+ 113   2      //      case S3_KEY:
+ 114   2      //        LCD_displayString8x16(2,0,"key2");
+ 115   2      //      break;
+ 116   2      //      case S4_KEY:
+C51 COMPILER V9.55   MAIN                                                                  10/17/2020 16:48:35 PAGE 3   
+
+ 117   2      //        LCD_displayString8x16(4,0,"key3");
+ 118   2      //      break;
+ 119   2      //      case S5_KEY:
+ 120   2      //        LCD_displayString8x16(6,0,"key4");
+ 121   2      //      break;
+ 122   2      //      default : break;
+ 123   2      //    }
+ 124   2      
+ 125   2        }
+ 126   1      }
+ 127          
+ 128          //===========================================================
+ 129          //    TIMER 0 interrupt subroutine
+ 130          //===========================================================
+ 131          void Timer0_ISR (void) interrupt 1  //interrupt address is 0x000B
+ 132          {
+ 133   1          TH0=TH0VAL;
+ 134   1        TL0=TL0VAL;
+ 135   1          main_TM++;
+ 136   1        if(uartRxTimeout)uartRxTimeout++;
+ 137   1      //    P17^=1;
+ 138   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    212    ----
+   CONSTANT SIZE    =     17    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =      6    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =      1    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)
