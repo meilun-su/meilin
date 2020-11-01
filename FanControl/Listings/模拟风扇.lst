@@ -1,0 +1,265 @@
+C51 COMPILER V9.55   ________                                                              03/11/2020 14:34:27 PAGE 1   
+
+
+C51 COMPILER V9.55, COMPILATION OF MODULE ________
+OBJECT MODULE PLACED IN .\Objects\ƒ£ƒ‚∑Á…».obj
+COMPILER INVOKED BY: E:\keil\C51\BIN\C51.EXE ƒ£ƒ‚∑Á…».c OPTIMIZE(8,SPEED) BROWSE DEBUG OBJECTEXTEND PRINT(.\Listings\ƒ£ƒ
+                    -‚∑Á…».lst) TABS(2) OBJECT(.\Objects\ƒ£ƒ‚∑Á…».obj)
+
+line level    source
+
+   1          #include "reg52.h"
+   2          #include "onewire.h"
+   3          
+   4          #define uchar unsigned char
+   5          #define uint unsigned int
+   6          
+   7          uchar tab[] = {0xc0,0xf9,0xa4,0xb0,0x99,0x92,0x82,0xf8,0x80,0x90,0xbf,0xff,0xc6};
+   8          uchar yi,er,san,si,wu,liu,qi,ba;
+   9          uchar Time=0;
+  10          uchar moshi=1;
+  11          uint count=0;
+  12          uchar pwm=0;
+  13          bit wendu=0;
+  14          bit fla=0;
+  15          
+  16          sbit S4 = P3^3;
+  17          sbit S5 = P3^2;
+  18          sbit S6 = P3^1;
+  19          sbit S7 = P3^0;
+  20          sbit P34 = P3^4;
+  21          
+  22          void Delayms(uint t)
+  23          {
+  24   1          uint i,j;
+  25   1          for(i=t;i>0;i--)
+  26   1            for(j=845;j>0;j--);
+  27   1      }
+  28          
+  29          void InitSystem()
+  30          {
+  31   1          P2 = 0xa0;
+  32   1          P0 = 0x00;
+  33   1        
+  34   1          P2 = 0x80;
+  35   1          P0 = 0xff;
+  36   1        
+  37   1          P2 = 0xc0;
+  38   1          P0 = 0xff;
+  39   1          P2 = 0xff;
+  40   1          P0 = 0xff;
+  41   1      }
+  42          
+  43          void TimerInit(void)    
+  44          {
+  45   1        TMOD = 0x01;    //…Ë÷√∂® ±∆˜ƒ£ Ω
+  46   1        TL0 = (65535 - 100)%256;    //…Ë÷√∂® ±≥ı÷µ
+  47   1        TH0 = (65535 - 100)/256;    //…Ë÷√∂® ±≥ı÷µ
+  48   1        TF0 = 0;    //«Â≥˝TF0±Í÷æ
+  49   1        TR0 = 1;    //∂® ±∆˜0ø™ ºº∆ ±
+  50   1      
+  51   1        ET0 = 1;
+  52   1        EA = 1;
+  53   1      }
+  54          
+C51 COMPILER V9.55   ________                                                              03/11/2020 14:34:27 PAGE 2   
+
+  55          void ServiceTimer0() interrupt 1
+  56          {
+  57   1        TL0 = (65535 - 100)%256;    //…Ë÷√∂® ±≥ı÷µ
+  58   1        TH0 = (65535 - 100)/256;    //…Ë÷√∂® ±≥ı÷µ
+  59   1      
+  60   1        count++;
+  61   1      //==================√ª”–µÁª˙£¨‘› ±Œﬁ∑® µœ÷∏√π¶ƒ‹==================  
+  62   1      //  pwm++;
+  63   1      //  if(pwm==10)pwm=0;
+  64   1      //  
+  65   1      //  if(Time>0)
+  66   1      //  {
+  67   1      //    if(moshi==1)
+  68   1      //    {
+  69   1      //      if(pwm<3)P34=1;
+  70   1      //      else P34=0;
+  71   1      //    }
+  72   1      //    else if(moshi==2)
+  73   1      //    {
+  74   1      //      if(pwm<4)P34=1;
+  75   1      //      else P34=0;
+  76   1      //    }
+  77   1      //    else if(moshi==3)
+  78   1      //    {
+  79   1      //      if(pwm<8)P34=1;
+  80   1      //      else P34=0;
+  81   1      //    }
+  82   1      //  }
+  83   1        
+  84   1        if(count==10000)
+  85   1        {
+  86   2          count=0;
+  87   2          if(Time>0)Time--;
+  88   2        }
+  89   1      }
+  90          
+  91          void display_gongzuo()
+  92          {
+  93   1          if(wendu==0)
+  94   1          {
+  95   2              yi=10;er=moshi;san=10;si=11;wu=Time/1000;liu=Time/100;qi=Time/10;ba=Time%10;
+  96   2          }
+  97   1          else if(wendu==1)
+  98   1          {
+  99   2              yi=10;er=4;san=10;si=11;wu=11;liu=ds18b20_get()/10;qi=ds18b20_get()%10;ba=12;
+ 100   2          }
+ 101   1      }
+ 102          
+ 103          void KeyScan()
+ 104          {
+ 105   1          if(S4==0)
+ 106   1          {
+ 107   2              Delayms(5);
+ 108   2              if(S4==0)
+ 109   2              {
+ 110   3                  if(moshi==1){moshi=2;}
+ 111   3                  else if(moshi==2){moshi=3;}
+ 112   3                  else if(moshi==3){moshi=1;}
+ 113   3              }
+ 114   2              while(!S4);
+ 115   2          }
+ 116   1          else if(S5==0)
+C51 COMPILER V9.55   ________                                                              03/11/2020 14:34:27 PAGE 3   
+
+ 117   1          {
+ 118   2              Delayms(5);
+ 119   2              if(S5==0)
+ 120   2              {
+ 121   3                  if(Time==0)Time=60;
+ 122   3                  else if(Time>0){Time=120;fla=1;}
+ 123   3                  else if(fla==1){Time=0;fla=0;}
+ 124   3              }
+ 125   2              while(!S5);
+ 126   2          }
+ 127   1          else if(S6==0)
+ 128   1          {
+ 129   2              Delayms(5);
+ 130   2              if(S6==0)
+ 131   2              {
+ 132   3                  Time=0;fla=0;
+ 133   3              }
+ 134   2          }
+ 135   1          else if(S7==0)
+ 136   1          {
+ 137   2              Delayms(5);
+ 138   2              if(S7==0)
+ 139   2              {
+ 140   3                  wendu=~wendu;
+ 141   3              }
+ 142   2          while(!S7);
+ 143   2          }
+ 144   1      }
+ 145          
+ 146          void display1(uchar yi,uchar er)
+ 147          {
+ 148   1          P2 = 0xc0;
+ 149   1          P0 = 0x01;
+ 150   1          P2 = 0xff;
+ 151   1          P0 = tab[yi];
+ 152   1          Delayms(1);
+ 153   1          
+ 154   1          P2 = 0xc0;
+ 155   1          P0 = 0x02;
+ 156   1          P2 = 0xff;
+ 157   1          P0 = tab[er];
+ 158   1          Delayms(1);
+ 159   1      }
+ 160          
+ 161          void display2(uchar san,uchar si)
+ 162          {
+ 163   1          P2 = 0xc0;
+ 164   1          P0 = 0x04;
+ 165   1          P2 = 0xff;
+ 166   1          P0 = tab[san];
+ 167   1          Delayms(1);
+ 168   1          
+ 169   1          P2 = 0xc0;
+ 170   1          P0 = 0x08;
+ 171   1          P2 = 0xff;
+ 172   1          P0 = tab[si];
+ 173   1          Delayms(1);
+ 174   1      }
+ 175          
+ 176          void display3(uchar wu,uchar liu)
+ 177          {
+ 178   1          P2 = 0xc0;
+C51 COMPILER V9.55   ________                                                              03/11/2020 14:34:27 PAGE 4   
+
+ 179   1          P0 = 0x10;
+ 180   1          P2 = 0xff;
+ 181   1          P0 = tab[wu];
+ 182   1          Delayms(1);
+ 183   1          
+ 184   1          P2 = 0xc0;
+ 185   1          P0 = 0x20;
+ 186   1          P2 = 0xff;
+ 187   1          P0 = tab[liu];
+ 188   1          Delayms(1);
+ 189   1      }
+ 190          
+ 191          void display4(uchar qi,uchar ba)
+ 192          {
+ 193   1          P2 = 0xc0;
+ 194   1          P0 = 0x40;
+ 195   1          P2 = 0xff;
+ 196   1          P0 = tab[qi];
+ 197   1          Delayms(1);
+ 198   1          
+ 199   1          P2 = 0xc0;
+ 200   1          P0 = 0x80;
+ 201   1          P2 = 0xff;
+ 202   1          P0 = tab[ba];
+ 203   1          Delayms(1);
+ 204   1        
+ 205   1          P2 = 0xc0;
+ 206   1          P0 = 0xff;
+ 207   1          P2 = 0xff;
+ 208   1          P0 = 0xff;
+ 209   1      }
+ 210          
+ 211          void main()
+ 212          {
+ 213   1          InitSystem();
+ 214   1          TimerInit();
+ 215   1          while(1)
+ 216   1          {
+ 217   2              display_gongzuo();
+ 218   2              
+ 219   2              if(Time>0)
+ 220   2              {
+ 221   3                  if(moshi==1){P2=0x80;P0=0xfe;}
+ 222   3                  else if(moshi==2){P2=0x80;P0=0xfd;}
+ 223   3                  else if(moshi==3){P2=0x80;P0=0xfb;}
+ 224   3              }
+ 225   2              else {P2=0x80;P0=0xff;}     //µπº∆ ±Ω· ¯£¨πÿ±’LEDµ∆œ‘ æ
+ 226   2              
+ 227   2              KeyScan();
+ 228   2              display1(yi,er);
+ 229   2              display2(san,si);
+ 230   2              display3(wu,liu);
+ 231   2              display4(qi,ba);
+ 232   2          }
+ 233   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    598    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+C51 COMPILER V9.55   ________                                                              03/11/2020 14:34:27 PAGE 5   
+
+   DATA SIZE        =     26    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =      2    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

@@ -1,0 +1,5 @@
+".\Objects\STARTUP.obj",
+".\Objects\模拟风扇.obj",
+".\Objects\onewire.obj" 
+TO ".\Objects\模拟风扇" 
+PRINT(".\Listings\模拟风扇.m51") RAMSIZE(256) 
