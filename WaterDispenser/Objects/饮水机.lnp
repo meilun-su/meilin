@@ -1,0 +1,4 @@
+".\Objects\STARTUP.obj",
+".\Objects\main.obj" 
+TO ".\Objects\饮水机" 
+PRINT(".\Listings\饮水机.m51") RAMSIZE(256) 

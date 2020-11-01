@@ -1,0 +1,340 @@
+C51 COMPILER V9.55   MAIN                                                                  11/01/2020 23:24:27 PAGE 1   
+
+
+C51 COMPILER V9.55, COMPILATION OF MODULE MAIN
+OBJECT MODULE PLACED IN .\Objects\main.obj
+COMPILER INVOKED BY: E:\keil\C51\BIN\C51.EXE main.c OPTIMIZE(8,SPEED) BROWSE DEBUG OBJECTEXTEND PRINT(.\Listings\main.ls
+                    -t) TABS(2) OBJECT(.\Objects\main.obj)
+
+line level    source
+
+   1          #include <STC15F2K60S2.H>
+   2          #include "intrins.h"
+   3          
+   4          #define uchar unsigned char
+   5          #define uint unsigned int
+   6          
+   7          #define Y4 P2 = P2 & 0x1f | 0x80
+   8          #define Y5 P2 = P2 & 0x1f | 0xa0
+   9          #define Y6 P2 = P2 & 0x1f | 0xc0
+  10          #define Y7 P2 = P2 & 0x1f | 0xe0
+  11          
+  12          #define somenop Delay5us()
+  13          
+  14          //总线引脚定义
+  15          sbit SDA = P2^1;  /* 数据线 */
+  16          sbit SCL = P2^0;  /* 时钟线 */
+  17          uchar code Duanma[]={0XC0,0XF9,0XA4,0XB0,0X99,0X92,0X82,0XF8,0X80,0X90,0XBF,0XFF};
+  18          uchar code Duanma_Dot[]={0x40,0x79,0x24,0x30,0x19,0x12,0x02,0xff};
+  19          uchar SMG1,SMG2,SMG3,SMG4,SMG5,SMG6,SMG7,SMG8;
+  20          uchar Data,T,price;
+  21          uint ML;
+  22          void Delay1ms()   //@11.0592MHz
+  23          {
+  24   1        unsigned char i, j;
+  25   1      
+  26   1        _nop_();
+  27   1        _nop_();
+  28   1        _nop_();
+  29   1        i = 11;
+  30   1        j = 190;
+  31   1        do
+  32   1        {
+  33   2          while (--j);
+  34   2        } while (--i);
+  35   1      }
+  36          
+  37          void Delay5us()   //@11.0592MHz
+  38          {
+  39   1        unsigned char i;
+  40   1      
+  41   1        _nop_();
+  42   1        i = 11;
+  43   1        while (--i);
+  44   1      }
+  45          
+  46          void Delay100ms()   //@11.0592MHz
+  47          {
+  48   1        unsigned char i, j, k;
+  49   1      
+  50   1        _nop_();
+  51   1        _nop_();
+  52   1        i = 5;
+  53   1        j = 52;
+  54   1        k = 195;
+C51 COMPILER V9.55   MAIN                                                                  11/01/2020 23:24:27 PAGE 2   
+
+  55   1        do
+  56   1        {
+  57   2          do
+  58   2          {
+  59   3            while (--k);
+  60   3          } while (--j);
+  61   2        } while (--i);
+  62   1      }
+  63          
+  64          void SysInit()
+  65          {
+  66   1        Y4; P0 = 0xff;
+  67   1        Y5; P0 = 0x00;
+  68   1      }
+  69          void SMG(uchar SMG1,SMG2,SMG3,SMG4,SMG5,SMG6,SMG7,SMG8)
+  70          {
+  71   1        Y6; P0 = 0x01;
+  72   1        Y7; P0 = Duanma[SMG1];
+  73   1        Delay1ms();
+  74   1      
+  75   1        Y6; P0 = 0x02;
+  76   1        Y7; P0 = Duanma_Dot[SMG2];
+  77   1        Delay1ms();
+  78   1      
+  79   1        Y6; P0 = 0x04;
+  80   1        Y7; P0 = Duanma[SMG3];
+  81   1        Delay1ms();
+  82   1      
+  83   1        Y6; P0 = 0x08;
+  84   1        Y7; P0 = Duanma[SMG4];
+  85   1        Delay1ms();
+  86   1      
+  87   1        Y6; P0 = 0x10;
+  88   1        Y7; P0 = Duanma[SMG5];
+  89   1        Delay1ms();
+  90   1      
+  91   1        Y6; P0 = 0x20;
+  92   1        Y7; P0 = Duanma_Dot[SMG6];
+  93   1        Delay1ms();
+  94   1      
+  95   1        Y6; P0 = 0x40;
+  96   1        Y7; P0 = Duanma[SMG7];
+  97   1        Delay1ms();
+  98   1      
+  99   1        Y6; P0 = 0x80;
+ 100   1        Y7; P0 = Duanma[SMG8];
+ 101   1        Delay1ms();
+ 102   1      }
+ 103          
+ 104          void key()
+ 105          {
+ 106   1        if(P30 == 0)
+ 107   1        {
+ 108   2          Delay100ms();
+ 109   2          if(P30 == 0)
+ 110   2          {
+ 111   3            Y5; P0 = 0x10;
+ 112   3            ET0 = 1;
+ 113   3            EA = 1;
+ 114   3            ML = 0; 
+ 115   3          }
+ 116   2          while(!30); 
+C51 COMPILER V9.55   MAIN                                                                  11/01/2020 23:24:27 PAGE 3   
+
+ 117   2        }
+ 118   1        else if(P31 == 0)
+ 119   1        {
+ 120   2          Delay100ms();
+ 121   2          if(P31 == 0)
+ 122   2          {
+ 123   3            Y5; P0 = 0x00;
+ 124   3            ET0 = 0;
+ 125   3            EA = 0;
+ 126   3            
+ 127   3            price = ML * 0.5;
+ 128   3            SMG5 = price/1000; SMG6 = (price%1000)/100; SMG7 = (price%100)/10; SMG8 = price%10; 
+ 129   3          }
+ 130   2          while(!31); 
+ 131   2        }
+ 132   1      }
+ 133          
+ 134          
+ 135          //总线启动条件
+ 136          void IIC_Start(void)
+ 137          {
+ 138   1        SDA = 1;
+ 139   1        SCL = 1;
+ 140   1        somenop;
+ 141   1        SDA = 0;
+ 142   1        somenop;
+ 143   1        SCL = 0;  
+ 144   1      }
+ 145          
+ 146          //总线停止条件
+ 147          void IIC_Stop(void)
+ 148          {
+ 149   1        SDA = 0;
+ 150   1        SCL = 1;
+ 151   1        somenop;
+ 152   1        SDA = 1;
+ 153   1      }
+ 154          
+ 155          //应答位控制
+ 156          void IIC_Ack(unsigned char ackbit)
+ 157          {
+ 158   1        if(ackbit) 
+ 159   1        { 
+ 160   2          SDA = 0;
+ 161   2        }
+ 162   1        else 
+ 163   1        {
+ 164   2          SDA = 1;
+ 165   2        }
+ 166   1        somenop;
+ 167   1        SCL = 1;
+ 168   1        somenop;
+ 169   1        SCL = 0;
+ 170   1        SDA = 1; 
+ 171   1        somenop;
+ 172   1      }
+ 173          
+ 174          //等待应答
+ 175          bit IIC_WaitAck(void)
+ 176          {
+ 177   1        SDA = 1;
+ 178   1        somenop;
+C51 COMPILER V9.55   MAIN                                                                  11/01/2020 23:24:27 PAGE 4   
+
+ 179   1        SCL = 1;
+ 180   1        somenop;
+ 181   1        if(SDA)    
+ 182   1        {   
+ 183   2          SCL = 0;
+ 184   2          IIC_Stop();
+ 185   2          return 0;
+ 186   2        }
+ 187   1        else  
+ 188   1        { 
+ 189   2          SCL = 0;
+ 190   2          return 1;
+ 191   2        }
+ 192   1      }
+ 193          
+ 194          //通过I2C总线发送数据
+ 195          void IIC_SendByte(unsigned char byt)
+ 196          {
+ 197   1        unsigned char i;
+ 198   1        for(i=0;i<8;i++)
+ 199   1        {   
+ 200   2          if(byt&0x80) 
+ 201   2          { 
+ 202   3            SDA = 1;
+ 203   3          }
+ 204   2          else 
+ 205   2          {
+ 206   3            SDA = 0;
+ 207   3          }
+ 208   2          somenop;
+ 209   2          SCL = 1;
+ 210   2          byt <<= 1;
+ 211   2          somenop;
+ 212   2          SCL = 0;
+ 213   2        }
+ 214   1      }
+ 215          
+ 216          //从I2C总线上接收数据
+ 217          unsigned char IIC_RecByte(void)
+ 218          {
+ 219   1        unsigned char da;
+ 220   1        unsigned char i;
+ 221   1        
+ 222   1        for(i=0;i<8;i++)
+ 223   1        {   
+ 224   2          SCL = 1;
+ 225   2          somenop;
+ 226   2          da <<= 1;
+ 227   2          if(SDA) 
+ 228   2          da |= 0x01;
+ 229   2          SCL = 0;
+ 230   2          somenop;
+ 231   2        }
+ 232   1        return da;
+ 233   1      }
+ 234          
+ 235          uchar ADC(uchar address)
+ 236          {
+ 237   1           uchar Data;
+ 238   1      
+ 239   1         IIC_Start();
+ 240   1         IIC_SendByte(0x90);
+C51 COMPILER V9.55   MAIN                                                                  11/01/2020 23:24:27 PAGE 5   
+
+ 241   1         IIC_WaitAck();
+ 242   1         IIC_SendByte(address);
+ 243   1         IIC_WaitAck();
+ 244   1         IIC_Stop();
+ 245   1      
+ 246   1         IIC_Start();
+ 247   1         IIC_SendByte(0x91);
+ 248   1         IIC_WaitAck();
+ 249   1         Data = IIC_RecByte();
+ 250   1         IIC_Ack(0);
+ 251   1         IIC_Stop();
+ 252   1      
+ 253   1         return Data;
+ 254   1      }
+ 255          
+ 256          void Timer0Init(void)   //5毫秒@11.0592MHz
+ 257          {
+ 258   1        AUXR |= 0x80;   //定时器时钟1T模式
+ 259   1        TMOD &= 0xF0;   //设置定时器模式
+ 260   1        TL0 = 0x00;   //设置定时初值
+ 261   1        TH0 = 0x28;   //设置定时初值
+ 262   1        TF0 = 0;    //清除TF0标志
+ 263   1        TR0 = 1;    //定时器0开始计时
+ 264   1      }
+ 265          
+ 266          void Timer0Service() interrupt 1
+ 267          {
+ 268   1         T++;
+ 269   1         if(T == 20)
+ 270   1         {
+ 271   2          T = 0;
+ 272   2          ML = ML + 1;
+ 273   2          SMG5 = ML/1000; SMG6 = (ML%1000)/100; SMG7 = (ML%100)/10; SMG8 = ML%10;
+ 274   2          if(ML>9999)
+ 275   2          {
+ 276   3              ET0 = 0;
+ 277   3              EA = 0;
+ 278   3              Y5; P0 = 0x00;
+ 279   3              price = ML * 0.5;
+ 280   3              SMG5 = price/1000; SMG6 = (price%1000)/100; SMG7 = (price%100)/10; SMG8 = price%10;
+ 281   3          }
+ 282   2         }
+ 283   1      }
+ 284          void main()
+ 285          {
+ 286   1        SysInit();
+ 287   1        Timer0Init();
+ 288   1        SMG1 = 11; SMG2 = 0; SMG3 = 5; SMG4 = 0;
+ 289   1        SMG5 = 0; SMG6 = 0; SMG7 = 0; SMG8 = 0;
+ 290   1        while(1)
+ 291   1        {
+ 292   2          key();
+ 293   2          Data = ADC(1);
+ 294   2          if(Data/51 > 1.25) 
+ 295   2          {
+ 296   3            Y4; P0 = 0xfe;
+ 297   3          }
+ 298   2          else
+ 299   2          {
+ 300   3            Y4; P0 = 0xff;
+ 301   3          }
+ 302   2            SMG(SMG1,SMG2,SMG3,SMG4,SMG5,SMG6,SMG7,SMG8); 
+C51 COMPILER V9.55   MAIN                                                                  11/01/2020 23:24:27 PAGE 6   
+
+ 303   2        }
+ 304   1      
+ 305   1      }
+ 306          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   1045    ----
+   CONSTANT SIZE    =     20    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =     13      15
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)
