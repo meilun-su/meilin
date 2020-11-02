@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context="meilun.activity.MainActivity"
+    android:weightSum="14">
+
+    <TextView
+        android:id="@+id/tv_title"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:background="@drawable/layout_top"
+        android:gravity="center"
+        android:text="首页"
+        android:textSize="30dp" />
+
+    <androidx.viewpager2.widget.ViewPager2
+        android:id="@+id/main_ViewPager"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="12"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:background="@drawable/layout_bt"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/mbt1"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_marginLeft="1dp"
+            android:layout_marginTop="1dp"
+            android:layout_marginRight="1dp"
+            android:layout_marginBottom="1dp"
+            android:layout_weight="1"
+            android:background="@drawable/bt_left"
+            android:drawableTop="@mipmap/zhuye"
+            android:padding="2dp"
+            android:text="首页"
+            android:textSize="15dp" />
+
+        <Button
+            android:id="@+id/mbt2"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_marginLeft="1dp"
+            android:layout_marginTop="1dp"
+            android:layout_marginRight="1dp"
+            android:layout_marginBottom="1dp"
+            android:layout_weight="1"
+            android:background="@color/color1"
+            android:drawableTop="@mipmap/shangpin"
+            android:padding="2dp"
+            android:text="点菜"
+            android:textSize="15dp" />
+
+        <Button
+            android:layout_marginLeft="1dp"
+            android:layout_marginRight="1dp"
+            android:layout_marginTop="1dp"
+            android:layout_marginBottom="1dp"
+            android:id="@+id/mbt3"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@color/color1"
+            android:drawableTop="@mipmap/caigou"
+            android:padding="2dp"
+            android:text="菜单"
+            android:textSize="15dp"/>
+
+        <Button
+            android:layout_marginLeft="1dp"
+            android:layout_marginRight="1dp"
+            android:layout_marginTop="1dp"
+            android:layout_marginBottom="1dp"
+            android:id="@+id/mbt4"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@drawable/bt_right"
+            android:drawableTop="@mipmap/user"
+            android:padding="2dp"
+            android:text="我的"
+            android:textSize="15dp"/>
+    </LinearLayout>
+</LinearLayout>

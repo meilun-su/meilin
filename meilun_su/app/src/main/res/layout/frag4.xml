@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/color1"
+    android:orientation="vertical"
+    android:weightSum="14">
+
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:background="@drawable/layout"
+        android:layout_margin="5dp"
+        android:layout_weight="2">
+
+        <ImageView
+            android:id="@+id/frag4_tx"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:padding="5dp"
+            android:layout_marginStart="16dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            android:background="@drawable/layout"
+            android:src="@mipmap/touxiang" />
+
+        <TextView
+            android:id="@+id/username"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="4dp"
+            android:text="未登录"
+            android:textSize="25dp"
+            app:layout_constraintStart_toEndOf="@+id/frag4_tx"
+            app:layout_constraintTop_toTopOf="@+id/frag4_tx" />
+
+        <TextView
+            android:id="@+id/VIP"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:textSize="20dp"
+            android:background="@drawable/layout"
+            app:layout_constraintBottom_toBottomOf="@+id/frag4_tx"
+            app:layout_constraintStart_toEndOf="@+id/frag4_tx" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="11">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <!--间隔-->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="20dp" />
+
+            <!--引用口味栏-->
+            <include layout="@layout/demo4_1" />
+
+            <!--间隔-->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="10dp"
+                android:background="@color/color1"/>
+
+            <!--引用登录栏-->
+            <include layout="@layout/demo4_2" />
+
+            <!--间隔-->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="10dp"
+                android:background="@color/color1"/>
+
+            <!--引用注册栏-->
+            <include layout="@layout/demo4_3" />
+
+            <!--间隔-->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="10dp"
+                android:background="@color/color1"/>
+
+            <!--引用注册栏-->
+            <include layout="@layout/demo4_4" />
+
+
+        </LinearLayout>
+    </ScrollView>
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:layout_marginBottom="5dp"
+        android:background="@drawable/layout">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="left|center"
+            android:layout_weight="1"
+            android:text="客服中心"
+            android:paddingLeft="5dp"
+            android:drawableLeft="@mipmap/kefu"
+            android:textSize="20dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center|right"
+            android:text="666-666-666"
+            android:paddingRight="5dp"
+            android:textSize="20dp" />
+    </FrameLayout>
+
+</LinearLayout>
